@@ -7,12 +7,20 @@ export default async function HomePage() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 h-screen">
-      {/* First column: occupies 1/3 of the screen on medium screens and above */}
       <div className="p-6 overflow-y-auto md:col-span-1">
+        <div className="text-2xl font-bold mb-4 text-orange-500">
+          <span>CycleMap</span>
+        </div>
         <h1 className="text-3xl font-bold mb-4">Discover bike networks</h1>
+        <p className="mb-4 text-sm text-muted-foreground">
+          Lorem ipsum dolor sit amet consectetur adipisicing elit. Doloribus ut
+          mollitia odit magnam, atque, voluptatibus praesentium quis blanditiis
+          repellat at assumenda illo. Quia obcaecati aliquam id pariatur
+          delectus, recusandae magni.
+        </p>
         <NetworkList networks={networks} />
       </div>
-      {/* Second column: occupies 2/3 of the screen on medium screens and above */}
+
       <div className="h-full w-full md:col-span-2">
         <Map networks={networks} />
       </div>
