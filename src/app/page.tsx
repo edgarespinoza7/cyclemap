@@ -1,9 +1,7 @@
 import { getBikeNetworks } from "@/lib/api";
 import NetworkList from "@/components/NetworkList";
 
-
 export default async function HomePage() {
-
   const networks = await getBikeNetworks();
 
   return (
@@ -18,10 +16,9 @@ export default async function HomePage() {
           mollitia odit magnam, atque, voluptatibus praesentium quis blanditiis
           repellat at assumenda illo.
         </p>
+
         <NetworkList networks={networks} />
       </div>
-
-   
     </div>
   );
 }

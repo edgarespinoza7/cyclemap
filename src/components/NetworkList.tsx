@@ -5,13 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+
+import { useRouter } from "next/navigation";
 
 import countries from "@/data/countries.json";
 
@@ -34,6 +29,11 @@ export default function NetworkList({ networks }: { networks: Network[] }) {
   const [countryFilter, setCountryFilter] = useState("");
   const [page, setPage] = useState(1);
   const pageSize = 6;
+  const router = useRouter();
+
+  const handleCardClick = (id: string) => {
+    router.push(`/networks/${id}`);
+  };
 
   const countries = Array.from(new Set(networks.map((n) => n.location.country)))
     .map((code) => ({
@@ -80,26 +80,18 @@ export default function NetworkList({ networks }: { networks: Network[] }) {
       <ScrollArea className="h-[70vh] pr-2">
         <div className="space-y-2">
           {paginated.map((network) => (
-            <Dialog key={network.id}>
-              <DialogTrigger asChild>
-                <Card className="hover:shadow transition-shadow cursor-pointer">
-                  <CardContent className="p-4">
-                    <h2 className="font-semibold text-lg">{network.name}</h2>
-                    <p className="text-sm text-muted-foreground">
-                      {network.location.city}, {network.location.country}
-                    </p>
-                  </CardContent>
-                </Card>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>{network.name}</DialogTitle>
-                  <p className="text-sm text-muted-foreground">
-                    {network.location.city}, {network.location.country}
-                  </p>
-                </DialogHeader>
-              </DialogContent>
-            </Dialog>
+            <Card
+              key={network.id}
+              className="hover:shadow transition-shadow cursor-pointer"
+              onClick={() => handleCardClick(network.id)}
+            >
+              <CardContent className="p-4">
+                <h2 className="font-semibold text-lg">{network.name}</h2>
+                <p className="text-sm text-muted-foreground">
+                  {network.location.city}, {network.location.country}
+                </p>
+              </CardContent>
+            </Card>
           ))}
         </div>
       </ScrollArea>
