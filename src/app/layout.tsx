@@ -18,9 +18,6 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const networks = await getBikeNetworks();
- 
-
-
 
   return (
     <html lang="en" suppressHydrationWarning>

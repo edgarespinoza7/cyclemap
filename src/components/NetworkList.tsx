@@ -87,14 +87,16 @@ export default function NetworkList({ networks }: { networks: Network[] }) {
               <CardContent className="p-4">
                 <h2 className="font-semibold text-lg">{network.name}</h2>
                 <p className="text-sm text-muted-foreground">
-                  {network.location.city}, {countryMap[network.location.country] || network.location.country}
+                  {network.location.city},{" "}
+                  {countryMap[network.location.country] ||
+                    network.location.country}
                 </p>
               </CardContent>
             </Card>
           ))}
         </div>
       </ScrollArea>
-
+      {/* Pagination Controls */}
       {totalPages > 1 && (
         <div className="flex justify-center gap-2">
           <Button
