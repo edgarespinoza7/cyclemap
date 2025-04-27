@@ -1,4 +1,12 @@
+
 import { getBikeNetworks } from "@/lib/api";
+import countries from "@/data/countries.json";
+import Link from "next/link";
+
+const countryMap = countries.data.reduce((map, country) => {
+  map[country.code] = country.name;
+  return map;
+}, {} as Record<string, string>);
 
 interface Network {
   id: string;
@@ -29,9 +37,10 @@ export default async function NetworkDetails({
 
   return (
     <div className="p-6 space-y-4">
+      <Link href="/" className="text-orange-500">Go Back</Link>
       <h1 className="text-2xl font-bold">{network.name}</h1>
       <p className="text-sm text-muted-foreground">
-        {network.location.city}, {network.location.country}
+        {network.location.city}, {countryMap[network.location.country] || network.location.country}
       </p>
       <h2 className="text-lg font-semibold">Stations</h2>
     </div>

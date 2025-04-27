@@ -43,6 +43,7 @@ export default function Map({ networks }: { networks: Network[] }) {
     markers.current = [];
 
     networks.forEach((n) => {
+
       const el = document.createElement("div");
 
       const popMessage = `<div class="p-2"><p class="font-bold text-center text-lg">${n.name}</p><p>${n.location.city}, ${n.location.country}</p></div>`;
@@ -68,6 +69,9 @@ export default function Map({ networks }: { networks: Network[] }) {
     }
   }, [lngLat]);
 
+  // Function that handles the "Near me" button click
+  // It uses the Geolocation API to get the user's current position and set it as the map center
+
   const handleLocate = () => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -77,6 +81,7 @@ export default function Map({ networks }: { networks: Network[] }) {
     );
   };
 
+  // Functions that handle zoom in and out
   const handleZoomIn = () => {
     if (mapRef.current) {
       mapRef.current.zoomIn();

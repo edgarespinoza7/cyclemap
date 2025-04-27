@@ -5,9 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-
 import { useRouter } from "next/navigation";
-
 import countries from "@/data/countries.json";
 
 const countryMap = countries.data.reduce((map, country) => {
@@ -55,8 +53,9 @@ export default function NetworkList({ networks }: { networks: Network[] }) {
   const totalPages = Math.ceil(filtered.length / pageSize);
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
+    <div className="space-y-4 px-4 overflow-y-auto">
+      {/* Sidebar Header */}
+      <div className="flex flex-col 2xl:flex-row gap-2">
         <Input
           placeholder="Search network"
           value={search}
@@ -64,7 +63,7 @@ export default function NetworkList({ networks }: { networks: Network[] }) {
         />
 
         <select
-          className="p-2 border rounded-md ml-2"
+          className="p-2 border rounded-md"
           value={countryFilter}
           onChange={(e) => setCountryFilter(e.target.value)}
         >
@@ -76,8 +75,8 @@ export default function NetworkList({ networks }: { networks: Network[] }) {
           ))}
         </select>
       </div>
-
-      <ScrollArea className="h-[70vh] pr-2">
+      {/* Network Cards */}
+      <ScrollArea className="h-[70vh]">
         <div className="space-y-2">
           {paginated.map((network) => (
             <Card
@@ -88,7 +87,7 @@ export default function NetworkList({ networks }: { networks: Network[] }) {
               <CardContent className="p-4">
                 <h2 className="font-semibold text-lg">{network.name}</h2>
                 <p className="text-sm text-muted-foreground">
-                  {network.location.city}, {network.location.country}
+                  {network.location.city}, {countryMap[network.location.country] || network.location.country}
                 </p>
               </CardContent>
             </Card>

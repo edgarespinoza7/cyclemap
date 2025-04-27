@@ -18,12 +18,16 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const networks = await getBikeNetworks();
+ 
+
+
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body
         className={cn(inter.className, "bg-white text-slate-900 min-h-screen")}
       >
-        <main className="flex flex-col md:flex-row gap-4 h-screen">
+        <main className="flex flex-col md:flex-row h-screen">
           <div className="flex-1/4 min-h-[40vh] md:h-screen overflow-auto">
             {children}
           </div>
