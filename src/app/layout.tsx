@@ -1,3 +1,4 @@
+// src/app/layout.tsx
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { cn } from "@/lib/utils";
@@ -15,17 +16,13 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-
   return (
     <html lang="en" suppressHydrationWarning>
       <body
         className={cn(inter.className, "bg-white text-slate-900 min-h-screen")}
       >
-        <main className="flex flex-col md:flex-row h-screen">
-          <div className="flex-1/4 min-h-[40vh] md:h-screen overflow-auto">
-            {children}
-          </div>
-        </main>
+        {/* The main structure is now handled by nested layouts like (main)/layout.tsx */}
+        {children}
       </body>
     </html>
   );
