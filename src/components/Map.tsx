@@ -2,9 +2,11 @@
 
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
+import type { MapMouseEvent } from "mapbox-gl";
 import { Button } from "@/components/ui/button";
 import { useParams, usePathname } from "next/navigation";
+import type { FeatureCollection, Point } from 'geojson';
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
@@ -19,16 +21,38 @@ type Network = {
   };
 };
 
+// Define layer and source IDs
+const SOURCE_ID = 'network-locations';
+const LAYER_ID = 'network-points-layer';
+const HIGHLIGHT_LAYER_ID = 'network-points-highlight-layer'; // For highlighting
+
 export default function Map({ networks }: { networks: Network[] }) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
 
-  // const markers = useRef<mapboxgl.Marker[]>([]);
-  const markers = useRef<Record<string, mapboxgl.Marker>>({}); // Use object for easy lookup
-  const popups = useRef<Record<string, mapboxgl.Popup>>({}); // Store popups too
+  const popupRef = useRef<mapboxgl.Popup | null>(null); // Define popupRef
+  const params = useParams(); 
+  const pathname = usePathname(); 
 
-  const params = useParams(); // Get route parameters { id: '...' }
-  const pathname = usePathname(); // Get current path '/networks/...'
+  const convertToGeoJSON = useCallback((networkData: Network[]): FeatureCollection<Point> => {
+    return {
+      type: "FeatureCollection",
+      features: networkData.map((n) => ({
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [n.location.longitude, n.location.latitude],
+        },
+        properties: { 
+          id: n.id,
+          name: n.name,
+          city: n.location.city,
+          country: n.location.country,
+          
+        },
+      })),
+    };
+  }, []); 
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -39,88 +63,173 @@ export default function Map({ networks }: { networks: Network[] }) {
       center: [0, 20],
       zoom: 2,
       projection: "mercator",
+      antialias: true,
     });
 
     mapRef.current = map;
 
-    // Clear existing markers
-    // markers.current.forEach((marker) => marker.remove());
-    // markers.current = [];
+    map.on('load', () => {
+      if (!mapRef.current) return; // Check if map still exists
 
-    networks.forEach((n) => {
+      const geojsonData = convertToGeoJSON(networks);
 
-      const el = document.createElement("div");
-      el.className = "map-marker";
+      // Add the source
+      mapRef.current.addSource(SOURCE_ID, {
+        type: 'geojson',
+        data: geojsonData,
+      });
 
-      const popMessage = `<div class="p-2"><p class="font-bold text-center text-lg">${n.name}</p><p>${n.location.city}, ${n.location.country}</p></div>`;
-      const popup = new mapboxgl.Popup({ offset: 15 }).setHTML(popMessage);
+      // Add the main layer for network points (using circles here)
+      mapRef.current.addLayer({
+        id: LAYER_ID,
+        type: 'circle',
+        source: SOURCE_ID,
+        paint: {
+          'circle-radius': 4, // Base radius
+          'circle-color': 'rgba(249, 115, 22, 0.7)', // Base color (orange-500/70)
+          'circle-stroke-width': 1,
+          'circle-stroke-color': 'rgb(249, 115, 22)', // orange-500
+          // --- Add hover effect using feature-state ---
+          'circle-opacity': [
+            'case',
+            ['boolean', ['feature-state', 'hover'], false],
+            1, // Fully opaque when hovered
+            0.7, // Default opacity
+          ],
+        },
+      });
 
-      const marker = new mapboxgl.Marker({
-        element: el,
-        className:
-          "h-2 w-2 bg-orange-500/60 rounded-full border border-orange-500 cursor-pointer transition-all",
-      })
-        .setLngLat([n.location.longitude, n.location.latitude])
-        .setPopup(popup)
-        .addTo(map);
+      // Add a layer specifically for highlighting the selected point
+      mapRef.current.addLayer({
+          id: HIGHLIGHT_LAYER_ID,
+          type: 'circle',
+          source: SOURCE_ID,
+          paint: {
+              'circle-radius': 9, // Slightly larger than hover
+              'circle-color': 'rgba(234, 88, 12, 1)', // Darker orange
+              'circle-stroke-width': 2,
+              'circle-stroke-color': 'rgba(124, 45, 18, 1)', // Even darker border
+          },
+          filter: ['==', ['get', 'id'], ''] // Initially filter out everything
+      });
 
-      // markers.current.push(marker);
-      markers.current[n.id] = marker; // Store marker by network ID
-      popups.current[n.id] = popup; // Store popup by network ID
+      // --- Interaction Handlers ---
+      let hoveredFeatureId: string | number | null = null;
+
+      // Mouse Enter for Hover Effect
+      mapRef.current.on('mouseenter', LAYER_ID, (e: MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }) => {
+          if (e.features && e.features.length > 0) {
+              mapRef.current!.getCanvas().style.cursor = 'pointer';
+              if (hoveredFeatureId !== null) {
+                  mapRef.current!.setFeatureState({ source: SOURCE_ID, id: hoveredFeatureId }, { hover: false });
+              }
+              hoveredFeatureId = e.features[0].id ?? e.features[0].properties?.id; // GeoJSON features might not have top-level id
+              if (hoveredFeatureId !== null) {
+                 mapRef.current!.setFeatureState({ source: SOURCE_ID, id: hoveredFeatureId }, { hover: true });
+              }
+          }
+      });
+
+      // Mouse Leave for Hover Effect
+      mapRef.current.on('mouseleave', LAYER_ID, () => {
+          mapRef.current!.getCanvas().style.cursor = '';
+          if (hoveredFeatureId !== null) {
+              mapRef.current!.setFeatureState({ source: SOURCE_ID, id: hoveredFeatureId }, { hover: false });
+          }
+          hoveredFeatureId = null;
+      });
+
+
+      // Click Handler for Popups
+      mapRef.current.on('click', LAYER_ID, (e: MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }) => {
+        if (!e.features || e.features.length === 0) return;
+
+        const feature = e.features[0];
+        const coordinates = (feature.geometry as Point).coordinates.slice();
+        const properties = feature.properties;
+
+        // Ensure coordinates are numbers and not something else
+        if (typeof coordinates[0] !== 'number' || typeof coordinates[1] !== 'number') {
+            console.error("Invalid coordinates for popup:", coordinates);
+            return;
+        }
+
+        // Ensure popup doesn't appear over controls or fly infinitely on mobile
+        while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+          coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+        }
+
+        const popMessage = `<div class="p-2 max-w-xs"><p class="font-bold text-center text-base">${properties?.name}</p><p class="text-sm text-center">${properties?.city}, ${properties?.country}</p></div>`;
+
+        // Remove existing popup if it exists
+        if (popupRef.current) {
+            popupRef.current.remove();
+        }
+
+        // Create and add new popup
+        popupRef.current = new mapboxgl.Popup({ offset: 15, closeButton: false })
+          .setLngLat(coordinates as [number, number])
+          .setHTML(popMessage)
+          .addTo(mapRef.current!);
+
+        // Optional: Navigate when clicking the point on the map
+        // if (properties?.id) {
+        //    router.push(`/networks/${properties.id}`); // Assuming you have access to router here or pass it as prop
+        // }
+      });
     });
 
+    // Cleanup function
     return () => {
       map.remove();
       mapRef.current = null;
-      markers.current = {};
-      popups.current = {};
-    }; 
-  }, [networks]);
-
-  useEffect(() => {
-    if (!mapRef.current) return;
-
-    const networkId = params.id as string | undefined; // Get network ID from URL params
-
-    // Reset styles/popups for all markers first
-    Object.values(markers.current).forEach(marker => {
-      marker.getElement().classList.remove('map-marker-active');
-      const popup = marker.getPopup();
-      if (popup && popup.isOpen()) {
-          marker.togglePopup();
+      if (popupRef.current) {
+          popupRef.current.remove();
+          popupRef.current = null;
       }
-    });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [convertToGeoJSON]); // Depend on the memoized function, networks prop is implicitly handled by it
 
 
-    if (networkId && markers.current[networkId]) {
-      const marker = markers.current[networkId];
-      const popup = popups.current[networkId];
-      const location = networks.find(n => n.id === networkId)?.location;
+  // Effect to react to route changes (highlighting)
+  useEffect(() => {
+    if (!mapRef.current || !mapRef.current.isStyleLoaded()) return; // Ensure map and style are ready
 
-      if (location) {
-        // Fly to the location
+    const networkId = params.id as string | undefined;
+
+    // Update the filter for the highlight layer
+    mapRef.current.setFilter(HIGHLIGHT_LAYER_ID, networkId ? ['==', ['get', 'id'], networkId] : ['==', ['get', 'id'], '']);
+
+    if (networkId) {
+      const targetNetwork = networks.find(n => n.id === networkId);
+      if (targetNetwork?.location) {
         mapRef.current.flyTo({
-          center: [location.longitude, location.latitude],
-          zoom: 8, // Or a suitable zoom level
+          center: [targetNetwork.location.longitude, targetNetwork.location.latitude],
+          zoom: 12, // Zoom closer for detail view
+          essential: true // Ensures animation completes
         });
 
-        // Highlight the marker (e.g., add a CSS class)
-        marker.getElement().classList.add('map-marker-active');
-
-        // Open the popup after a short delay to allow flyTo to progress
-        setTimeout(() => {
-            if (!popup.isOpen()) {
-                 marker.togglePopup();
-            }
-        }, 500); // Adjust delay as needed
+        // Optional: Open popup for the selected network automatically
+        // You might need to query the feature to get its exact coordinates if not readily available
+        // map.queryRenderedFeatures(...) could be used here, then create/show popup.
+        // For simplicity, we'll rely on the highlight layer for visual cue.
 
       }
     } else if (pathname === '/') {
-        // Optional: Fly back to default view when on the home page
-         mapRef.current.flyTo({ center: [0, 20], zoom: 2 });
+      // Fly back to default view only if not already there or close
+       if (mapRef.current.getZoom() > 4) { // Avoid unnecessary flyTo on initial load
+           mapRef.current.flyTo({ center: [0, 20], zoom: 2, essential: true });
+       }
+       // Close any open popup when returning home
+       if (popupRef.current) {
+           popupRef.current.remove();
+           popupRef.current = null;
+       }
     }
 
-  }, [params, pathname, networks]); // Dependencies: params, pathname, networks
+  }, [params, pathname, networks]); // Include networks in case the list changes fundamentally
+
 
   // Function that handles the "Near me" button click
   // It uses the Geolocation API to get the user's current position and set it as the map center
@@ -169,32 +278,7 @@ export default function Map({ networks }: { networks: Network[] }) {
   return (
     <div className="relative h-full w-full">
       <div ref={mapContainer} className="absolute inset-0 h-full w-full" />
-      <style jsx global>{`
-        .map-marker {
-          height: 10px;
-          width: 10px;
-          background-color: rgba(249, 115, 22, 0.6); /* orange-500/60 */
-          border-radius: 9999px; /* rounded-full */
-          border: 1px solid rgb(249 115 22); /* border-orange-500 */
-          cursor: pointer;
-          transition: all 0.2s ease-in-out;
-        }
-        .map-marker:hover {
-          transform: scale(1.5);
-          background-color: rgba(249, 115, 22, 0.9);
-        }
-        .map-marker-active {
-           transform: scale(1.8);
-           background-color: rgba(234, 88, 12, 1); /* darker orange */
-           border-color: rgba(124, 45, 18, 1);
-           z-index: 10; /* Ensure it's above others */
-        }
-        .mapboxgl-popup-content {
-            padding: 0 !important; /* Override default padding if needed */
-            box-shadow: 0 1px 2px rgba(0,0,0,.1);
-            border-radius: 4px;
-        }
-      `}</style>
+
       <div className="absolute top-4 left-4 z-10">
         <Button onClick={handleLocate}>Near me</Button>
       </div>

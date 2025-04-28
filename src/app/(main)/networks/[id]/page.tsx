@@ -23,6 +23,18 @@ async function getNetworkDetails(id: string) {
 export default async function NetworkDetailPage({ params }: { params: { id: string } }) {
   const networkDetails = await getNetworkDetails(params.id);
 
+  // Check if params.id is available
+  if (!params.id) {
+    return (
+        <div className="p-4">
+            <p>Invalid network ID.</p>
+            <Button asChild variant="link">
+              <Link href="/">Back to list</Link>
+            </Button>
+        </div>
+    );
+}
+
   if (!networkDetails) {
     return (
       <div className="p-4">
