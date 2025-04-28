@@ -1,23 +1,24 @@
 import { getBikeNetworks } from "@/lib/api";
 import NetworkList from "@/components/NetworkList";
+import Map from "@/components/Map"; // Ensure this path points to the correct Map component
+
+import Header from "@/components/Header";
 
 export default async function HomePage() {
+
+  
   const networks = await getBikeNetworks();
 
   return (
-    <div className="h-screen">
-      <div className="p-4 overflow-y-auto">
-        <div className="text-2xl font-bold mb-4 text-orange-500">
-          <span>CycleMap</span>
-        </div>
-        <h1 className="text-3xl font-bold mb-4">Discover bike networks</h1>
-        <p className="text-sm text-muted-foreground">
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Doloribus ut
-          mollitia odit magnam, atque, voluptatibus praesentium quis blanditiis
-          repellat at assumenda illo.
-        </p>
+    <div className="h-screen flex flex-col md:flex-row">
+      <div className="flex-1/4 min-h-[40vh] md:h-screen overflow-auto">
+        <Header />
+        <NetworkList networks={networks} />
       </div>
-      <NetworkList networks={networks} />
+   
+      <div className="flex-3/4 h-screen">
+        <Map networks={networks} />
+      </div>
     </div>
   );
 }

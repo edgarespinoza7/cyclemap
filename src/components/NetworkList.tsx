@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -22,12 +22,38 @@ interface Network {
   };
 }
 
+interface AdditionalData {
+  company: string[];
+  stations: number;
+}
+
+
+
 export default function NetworkList({ networks }: { networks: Network[] }) {
   const [search, setSearch] = useState("");
   const [countryFilter, setCountryFilter] = useState("");
   const [page, setPage] = useState(1);
   const pageSize = 6;
   const router = useRouter();
+
+  const [additionalData, setAdditionalData] = useState<Record<string, AdditionalData>>({});
+
+  // Fetch additional data for a specific network
+  const fetchAdditionalData = async (id: string) => {
+    try {
+      const response = await fetch(`http://api.citybik.es/v2/networks/${id}`);
+      const data = await response.json();
+      setAdditionalData((prev) => ({
+        ...prev,
+        [id]: {
+          company: data.network.company || [],
+          stations: data.network.stations?.length || 0,
+        },
+      }));
+    } catch (error) {
+      console.error(`Failed to fetch additional data for network ${id}:`, error);
+    }
+  };
 
   const handleCardClick = (id: string) => {
     router.push(`/networks/${id}`);
@@ -52,8 +78,17 @@ export default function NetworkList({ networks }: { networks: Network[] }) {
 
   const totalPages = Math.ceil(filtered.length / pageSize);
 
+  useEffect(() => {
+    // Fetch additional data for all paginated networks
+    paginated.forEach((network) => {
+      if (!additionalData[network.id]) {
+        fetchAdditionalData(network.id);
+      }
+    });
+  }, [paginated, additionalData]);
+
   return (
-    <div className="space-y-4 px-4 overflow-y-auto">
+    <div className="space-y-4 px-4 pt-2 overflow-y-auto">
       {/* Sidebar Header */}
       <div className="flex flex-col 2xl:flex-row gap-2">
         <Input
@@ -91,6 +126,12 @@ export default function NetworkList({ networks }: { networks: Network[] }) {
                   {countryMap[network.location.country] ||
                     network.location.country}
                 </p>
+                {additionalData[network.id] && (
+                  <div className="mt-2 text-sm text-muted-foreground">
+                    <p>Company: {additionalData[network.id].company.join(", ")}</p>
+                    <p>Stations: {additionalData[network.id].stations}</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}

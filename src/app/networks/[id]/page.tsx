@@ -1,7 +1,7 @@
-
 import { getBikeNetworks } from "@/lib/api";
 import countries from "@/data/countries.json";
 import Link from "next/link";
+import Map from "@/components/Map";
 
 const countryMap = countries.data.reduce((map, country) => {
   map[country.code] = country.name;
@@ -23,26 +23,32 @@ export default async function NetworkDetails({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params; 
+  const { id } = await params;
 
   const networks = await getBikeNetworks();
 
   const network = await networks.find((network: Network) => network.id === id);
-
-  console.log(network);
 
   if (!network) {
     return <div>Network not found</div>;
   }
 
   return (
-    <div className="p-6 space-y-4">
-      <Link href="/" className="text-orange-500">Go Back</Link>
-      <h1 className="text-2xl font-bold">{network.name}</h1>
-      <p className="text-sm text-muted-foreground">
-        {network.location.city}, {countryMap[network.location.country] || network.location.country}
-      </p>
-      <h2 className="text-lg font-semibold">Stations</h2>
+    <div className="h-screen flex flex-col md:flex-row">
+      <div className="flex-1/4 min-h-[40vh] md:h-screen overflow-auto p-4">
+        <Link href="/" className="text-orange-500">
+          Go Back
+        </Link>
+        <h1 className="text-2xl font-bold">{network.name}</h1>
+        <p className="text-sm text-muted-foreground">
+          {network.location.city},{" "}
+          {countryMap[network.location.country] || network.location.country}
+        </p>
+        <h2 className="text-lg font-semibold">Stations</h2>
+      </div>
+      <div className="flex-3/4 h-screen">
+        <Map networks={networks} />
+      </div>
     </div>
   );
 }
