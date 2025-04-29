@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import countries from "@/data/countries.json";
+import Header from "./Header";
+import { CountryFilterModal } from "./CountryFilterModal";
 
 const countryMap = countries.data.reduce((map, country) => {
   map[country.code] = country.name;
@@ -33,24 +35,25 @@ export default function NetworkList({ networks }: { networks: Network[] }) {
   const [page, setPage] = useState(1);
   const pageSize = 6;
   const router = useRouter();
-
   const [additionalData, setAdditionalData] = useState<
     Record<string, AdditionalData>
   >({});
-
+  const [isCountryModalOpen, setIsCountryModalOpen] = useState(false);
 
   const fetchAdditionalData = async (id: string) => {
     try {
-      const response = await fetch(`http://api.citybik.es/v2/networks/${id}`);
-
-      
+      const response = await fetch(`http://api.citybik.es/v2/networks/${id}`, {
+        next: { revalidate: 3600 },
+      });
 
       if (!response.ok) {
-        throw new Error(`API request failed for ID ${id} with status ${response.status}: ${response.statusText}`);
+        throw new Error(
+          `API request failed for ID ${id} with status ${response.status}: ${response.statusText}`
+        );
       }
 
       const data = await response.json();
-      
+
       setAdditionalData((prev) => ({
         ...prev,
         [id]: {
@@ -71,12 +74,15 @@ export default function NetworkList({ networks }: { networks: Network[] }) {
     router.push(`/networks/${id}`);
   };
 
-  const countries = Array.from(new Set(networks.map((n) => n.location.country)))
-    .map((code) => ({
-      code,
-      name: countryMap[code] || code, 
-    }))
-    .sort((a, b) => a.name.localeCompare(b.name));
+
+  const availableCountries = useMemo(() => {
+    return Array.from(new Set(networks.map((n) => n.location.country)))
+      .map((code) => ({
+        code,
+        name: countryMap[code] || code,
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [networks]); 
 
   const filtered = networks.filter((n) => {
     const matchesSearch = n.name.toLowerCase().includes(search.toLowerCase());
@@ -98,9 +104,17 @@ export default function NetworkList({ networks }: { networks: Network[] }) {
     });
   }, [paginated, additionalData]);
 
+  // Callback function to update the filter from the modal
+  const handleSelectCountry = (countryCode: string) => {
+    setCountryFilter(countryCode);
+    setPage(1); 
+    
+  };
+
   return (
     <div className="space-y-4 px-4 pt-2 overflow-y-auto">
       {/* Sidebar Header */}
+      <Header />
       <div className="flex flex-col 2xl:flex-row gap-2">
         <Input
           placeholder="Search network"
@@ -108,18 +122,14 @@ export default function NetworkList({ networks }: { networks: Network[] }) {
           onChange={(e) => setSearch(e.target.value)}
         />
 
-        <select
-          className="p-2 border rounded-md"
-          value={countryFilter}
-          onChange={(e) => setCountryFilter(e.target.value)}
+        <Button
+          variant="outline"
+          onClick={() => setIsCountryModalOpen(true)}
+          className="flex-shrink-0" // Prevent button from shrinking too much
         >
-          <option value="">All Countries</option>
-          {countries.map((country) => (
-            <option key={country.code} value={country.code}>
-              {country.name}
-            </option>
-          ))}
-        </select>
+          Country
+        </Button>
+    
       </div>
       {/* Network Cards */}
       <ScrollArea className="h-[70vh]">
@@ -142,7 +152,6 @@ export default function NetworkList({ networks }: { networks: Network[] }) {
                     <p>
                       Company: {additionalData[network.id].company.join(", ")}
                     </p>
-                    <p>Stations: {additionalData[network.id].stations}</p>
                   </div>
                 )}
               </CardContent>
@@ -171,6 +180,14 @@ export default function NetworkList({ networks }: { networks: Network[] }) {
           </Button>
         </div>
       )}
+      {/* Modal */}
+      <CountryFilterModal
+        isOpen={isCountryModalOpen}
+        onOpenChange={setIsCountryModalOpen} 
+        availableCountries={availableCountries}
+        selectedCountryCode={countryFilter}
+        onSelectCountry={handleSelectCountry} 
+      />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
+
 interface RentalUris {
   android: string;
   ios: string;
@@ -96,8 +97,9 @@ export default async function NetworkDetailPage({
       <p className="text-muted-foreground">
         {networkDetails.location?.city}, {networkDetails.location?.country}
       </p>
-      <p>Company: {networkDetails.company?.join(", ") || "N/A"}</p>
-      <p>Stations: {networkDetails.stations?.length || 0}</p>
+      <p>{networkDetails.company?.join(", ") || "N/A"}</p>
+      <p>All {networkDetails.stations?.length || 0} Stations</p>
+    
     </div>
   );
 }
