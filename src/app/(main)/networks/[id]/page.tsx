@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-// import { DataTable } from "./data-table";
-// import { columns } from "./columns";
+import { DataTable } from "./data-table";
+import { columns } from "./columns";
 
 interface Station {
   id: string;
@@ -12,6 +12,7 @@ interface Station {
   free_bikes: number;
   empty_slots: number;
   extra: {
+    address: string;
     uid: string;
     renting: number;
     returning: number;
@@ -99,13 +100,19 @@ export default async function NetworkDetailPage({
           {networkDetails.location?.city}, {networkDetails.location?.country}
         </p>
         {networkDetails.company && networkDetails.company.length > 0 && (
-          <>
-            
-            <p>{networkDetails.company.join(", ")}</p>
-          </>
+          <p>{networkDetails.company.join(", ")}</p>
         )}
-      </div>   
-      <p>All {stations.length} Stations</p>
+      </div>
+      <p>
+        All{" "}
+        <span className="border border-orange-500 rounded p-1">
+          {stations.length}
+        </span>{" "}
+        Stations
+      </p>
+      <div className="mt-8">
+        <DataTable columns={columns} data={stations} />
+      </div>
     </div>
   );
 }

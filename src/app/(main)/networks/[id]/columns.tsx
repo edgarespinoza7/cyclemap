@@ -12,6 +12,7 @@ interface Station {
   free_bikes: number;
   empty_slots: number;
   extra: {
+    address: string;
     uid: string;
     renting: number;
     returning: number;
@@ -30,7 +31,7 @@ interface Station {
 
 export const columns: ColumnDef<Station, unknown>[] = [
   {
-    accessorKey: "name",
+    accessorKey: "extra.address",
     header: "Station Name",
   },
   {
