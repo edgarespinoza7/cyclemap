@@ -13,11 +13,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import type { Country } from "@/lib/types"; 
 
-interface Country {
-  code: string;
-  name: string;
-}
 
 interface CountryFilterModalProps {
   isOpen: boolean;

@@ -1,9 +1,16 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Poppins } from "next/font/google";
 import { cn } from "@/lib/utils";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+
+
+const poppins = Poppins({
+  subsets: ["latin"],
+  variable: "--font-poppins",
+  display: "swap",
+  weight: ["400", "700"], 
+});
 
 export const metadata: Metadata = {
   title: "CycleMap",
@@ -18,7 +25,7 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={cn(inter.className, "bg-white text-slate-900 min-h-screen")}
+        className={cn(poppins.className, "bg-white text-slate-900 min-h-screen")}
       >
         {children}
       </body>

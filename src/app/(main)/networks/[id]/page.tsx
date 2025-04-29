@@ -2,38 +2,12 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { DataTable } from "./data-table";
 import { columns } from "./columns";
+import { countryMap } from "@/lib/countryUtils";
+import type { NetworkDetails, Station } from "@/lib/types";
 
-interface Station {
-  id: string;
-  name: string;
-  latitude: number;
-  longitude: number;
-  timestamp: string;
-  free_bikes: number;
-  empty_slots: number;
-  extra: {
-    address: string;
-    uid: string;
-    renting: number;
-    returning: number;
-    last_updated: number;
-    has_ebikes: boolean;
-    ebikes: number;
-    payment: string[];
-    "payment-terminal": boolean;
-    slots: number;
-    rental_uris: {
-      [key: string]: string;
-    };
-  };
-}
 
-interface NetworkDetails {
-  name: string;
-  location?: { city: string; country: string };
-  company?: string[];
-  stations?: Station[];
-}
+
+
 async function getNetworkDetails(id: string): Promise<NetworkDetails | null> {
   try {
     const response = await fetch(`http://api.citybik.es/v2/networks/${id}`, {
@@ -85,7 +59,7 @@ export default async function NetworkDetailPage({
     );
   }
 
-  const stations = networkDetails.stations || [];
+  const stations: Station[] = networkDetails.stations || [];
 
   return (
     <div className="container mx-auto py-10 px-4 space-y-6">
@@ -96,9 +70,13 @@ export default async function NetworkDetailPage({
         {networkDetails.name}
       </h2>
       <div className="text-muted-foreground space-x-2">
-        <p>
-          {networkDetails.location?.city}, {networkDetails.location?.country}
-        </p>
+      {networkDetails.location && (
+           <p>
+            {networkDetails.location.city},{" "}
+            {countryMap[networkDetails.location.country ?? ""] ||
+              networkDetails.location.country}
+          </p>
+        )}
         {networkDetails.company && networkDetails.company.length > 0 && (
           <p>{networkDetails.company.join(", ")}</p>
         )}

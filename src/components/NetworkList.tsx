@@ -6,37 +6,27 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import countries from "@/data/countries.json";
+import { countryMap } from "@/lib/countryUtils";
 import Header from "./Header";
 import { CountryFilterModal } from "./CountryFilterModal";
+import type {
+  NetworkListItem,
+  NetworkListAdditionalData,
+  Country,
+} from "@/lib/types";
 
-const countryMap = countries.data.reduce((map, country) => {
-  map[country.code] = country.name;
-  return map;
-}, {} as Record<string, string>);
-
-interface Network {
-  id: string;
-  name: string;
-  location: {
-    city: string;
-    country: string;
-  };
-}
-
-interface AdditionalData {
-  company: string[];
-  stations: number;
-}
-
-export default function NetworkList({ networks }: { networks: Network[] }) {
+export default function NetworkList({
+  networks,
+}: {
+  networks: NetworkListItem[];
+}) {
   const [search, setSearch] = useState("");
   const [countryFilter, setCountryFilter] = useState("");
   const [page, setPage] = useState(1);
   const pageSize = 6;
   const router = useRouter();
   const [additionalData, setAdditionalData] = useState<
-    Record<string, AdditionalData>
+    Record<string, NetworkListAdditionalData>
   >({});
   const [isCountryModalOpen, setIsCountryModalOpen] = useState(false);
 
@@ -57,7 +47,11 @@ export default function NetworkList({ networks }: { networks: Network[] }) {
       setAdditionalData((prev) => ({
         ...prev,
         [id]: {
-          company: data.network.company || [],
+          company: Array.isArray(data.network.company)
+            ? data.network.company
+            : data.network.company
+            ? [data.network.company]
+            : [],
           stations: data.network.stations?.length || 0,
         },
       }));
@@ -67,6 +61,10 @@ export default function NetworkList({ networks }: { networks: Network[] }) {
         `Failed to fetch additional data for network ${id}:`,
         error
       );
+      setAdditionalData((prev) => ({
+        ...prev,
+        [id]: { company: [], stations: 0 },
+      }));
     }
   };
 
@@ -74,27 +72,55 @@ export default function NetworkList({ networks }: { networks: Network[] }) {
     router.push(`/networks/${id}`);
   };
 
-
   const availableCountries = useMemo(() => {
     return Array.from(new Set(networks.map((n) => n.location.country)))
-      .map((code) => ({
-        code,
-        name: countryMap[code] || code,
-      }))
+      .map(
+        (code): Country => ({
+          code,
+          name: countryMap[code] || code,
+        })
+      )
       .sort((a, b) => a.name.localeCompare(b.name));
-  }, [networks]); 
+  }, [networks]);
 
-  const filtered = networks.filter((n) => {
-    const matchesSearch = n.name.toLowerCase().includes(search.toLowerCase());
-    const matchesCountry = countryFilter
-      ? n.location.country === countryFilter
-      : true;
-    return matchesSearch && matchesCountry;
-  });
+  const filtered = useMemo(() => {
+    return networks.filter((n) => {
+      const matchesCountry = countryFilter
+        ? n.location.country === countryFilter
+        : true;
+      if (!matchesCountry) return false;
 
-  const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
+      const searchTermLower = search.toLowerCase();
+      if (!searchTermLower) return true;
 
-  const totalPages = Math.ceil(filtered.length / pageSize);
+      const matchesName = n.name.toLowerCase().includes(searchTermLower);
+
+      const networkExtraData = additionalData[n.id];
+      const matchesCompany =
+        networkExtraData?.company?.some(
+          (companyName) =>
+            typeof companyName === "string" &&
+            companyName.toLowerCase().includes(searchTermLower)
+        ) ?? false;
+
+      return matchesName || matchesCompany;
+    });
+  }, [networks, search, countryFilter, additionalData]);
+
+  const paginated = useMemo(() => {
+    const newTotalPages = Math.ceil(filtered.length / pageSize);
+    if (page > newTotalPages && newTotalPages > 0) {
+      setPage(1);
+    } else if (newTotalPages === 0 && page !== 1) {
+      setPage(1);
+    }
+    return filtered.slice((page - 1) * pageSize, page * pageSize);
+  }, [filtered, page, pageSize]);
+
+  const totalPages = useMemo(
+    () => Math.ceil(filtered.length / pageSize),
+    [filtered, pageSize]
+  );
 
   useEffect(() => {
     paginated.forEach((network) => {
@@ -107,8 +133,7 @@ export default function NetworkList({ networks }: { networks: Network[] }) {
   // Callback function to update the filter from the modal
   const handleSelectCountry = (countryCode: string) => {
     setCountryFilter(countryCode);
-    setPage(1); 
-    
+    setPage(1);
   };
 
   return (
@@ -129,7 +154,6 @@ export default function NetworkList({ networks }: { networks: Network[] }) {
         >
           Country
         </Button>
-    
       </div>
       {/* Network Cards */}
       <ScrollArea className="h-[70vh]">
@@ -183,10 +207,10 @@ export default function NetworkList({ networks }: { networks: Network[] }) {
       {/* Modal */}
       <CountryFilterModal
         isOpen={isCountryModalOpen}
-        onOpenChange={setIsCountryModalOpen} 
+        onOpenChange={setIsCountryModalOpen}
         availableCountries={availableCountries}
         selectedCountryCode={countryFilter}
-        onSelectCountry={handleSelectCountry} 
+        onSelectCountry={handleSelectCountry}
       />
     </div>
   );

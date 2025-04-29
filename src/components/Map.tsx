@@ -6,44 +6,9 @@ import { useEffect, useRef, useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useParams, usePathname } from "next/navigation";
 import type { FeatureCollection, Point } from "geojson";
+import type { NetworkMapSummary, Station } from "@/lib/types";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
-
-type NetworkSummary = {
-  id: string;
-  name: string;
-  location: {
-    latitude: number;
-    longitude: number;
-    city: string;
-    country: string;
-  };
-};
-
-interface Station {
-  id: string;
-  name: string;
-  latitude: number;
-  longitude: number;
-  timestamp: string;
-  free_bikes: number;
-  empty_slots: number;
-  extra: {
-    address: string;
-    uid: string;
-    renting: number;
-    returning: number;
-    last_updated: number;
-    has_ebikes: boolean;
-    ebikes: number;
-    payment: string[];
-    "payment-terminal": boolean;
-    slots: number;
-    rental_uris: {
-      [key: string]: string;
-    };
-  };
-}
 
 // Define layer and source IDs
 const NETWORK_SOURCE_ID = "network-locations";
@@ -54,7 +19,7 @@ const STATION_SOURCE_ID = "station-locations";
 const STATION_LAYER_ID = "station-points-layer";
 // --- End Station Source/Layer IDs ---
 
-export default function Map({ networks }: { networks: NetworkSummary[] }) {
+export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const popupRef = useRef<mapboxgl.Popup | null>(null);
@@ -68,7 +33,7 @@ export default function Map({ networks }: { networks: NetworkSummary[] }) {
 
   // Function to convert network summary data to GeoJSON
   const convertNetworksToGeoJSON = useCallback(
-    (networkData: NetworkSummary[]): FeatureCollection<Point> => {
+    (networkData: NetworkMapSummary[]): FeatureCollection<Point> => {
       return {
         type: "FeatureCollection",
         features: networkData.map((n) => ({
@@ -302,15 +267,15 @@ export default function Map({ networks }: { networks: NetworkSummary[] }) {
         }
 
         // Customize popup for stations
-        const popMessage = `<div class="p-2 max-w-xs">
+        const popMessage = `<div class="p-2 max-w-md min-w-45">
         <p class="font-bold text-base break-all">${properties?.name}</p>
         <div class="flex justify-between items-center text-sm mt-2">
-        <p>Free Bikes </p>
-        <p className="font-bold">${properties?.free_bikes}</p>
+        <p class="text-muted-foreground">Free Bikes</p>
+        <p class="font-bold">${properties?.free_bikes}</p>
         </div>
         <div class="flex justify-between items-center text-sm">
-        <p>Empty Slots</p>
-        <p className="font-bold">${properties?.empty_slots}</p>
+        <p class="text-muted-foreground">Empty Slots</p>
+        <p class="font-bold">${properties?.empty_slots}</p>
         </div>
         </div>`;
 
@@ -358,7 +323,9 @@ export default function Map({ networks }: { networks: NetworkSummary[] }) {
 
     if (networkId) {
       // We are on a network detail page
-      const targetNetwork = networks.find((n) => n.id === networkId);
+      const targetNetwork: NetworkMapSummary | undefined = networks.find(
+        (n) => n.id === networkId
+      );
 
       // Fly to network location
       if (targetNetwork?.location) {
@@ -415,7 +382,6 @@ export default function Map({ networks }: { networks: NetworkSummary[] }) {
 
   // Function that handles the "Near me" button click
   // It uses the Geolocation API to get the user's current position and set it as the map center
-
   const handleLocate = () => {
     if (!mapRef.current) {
       console.error("Map is not initialized yet.");
