@@ -8,12 +8,27 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { countryMap } from "@/lib/countryUtils";
 import Header from "./Header";
-import { CountryFilterModal } from "./CountryFilterModal";
 import type {
   NetworkListItem,
   NetworkListAdditionalData,
   Country,
 } from "@/lib/types";
+// Combobox and Popover imports
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 export default function NetworkList({
   networks,
@@ -28,7 +43,9 @@ export default function NetworkList({
   const [additionalData, setAdditionalData] = useState<
     Record<string, NetworkListAdditionalData>
   >({});
-  const [isCountryModalOpen, setIsCountryModalOpen] = useState(false);
+
+  // Combobox Open State
+  const [isComboboxOpen, setIsComboboxOpen] = useState(false);
 
   const fetchAdditionalData = async (id: string) => {
     try {
@@ -130,14 +147,14 @@ export default function NetworkList({
     });
   }, [paginated, additionalData]);
 
-  // Callback function to update the filter from the modal
+  // Callback function to update the filter from the combobox
   const handleSelectCountry = (countryCode: string) => {
     setCountryFilter(countryCode);
     setPage(1);
   };
 
   return (
-    <div className="space-y-4 px-4 pt-2 overflow-y-auto">
+    <div className="space-y-4 px-4 pt-2 overflow-y-auto h-full flex flex-col">
       {/* Sidebar Header */}
       <Header />
       <div className="flex flex-col 2xl:flex-row gap-2">
@@ -146,14 +163,74 @@ export default function NetworkList({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-
-        <Button
-          variant="outline"
-          onClick={() => setIsCountryModalOpen(true)}
-          className="flex-shrink-0" // Prevent button from shrinking too much
-        >
-          Country
-        </Button>
+        <Popover open={isComboboxOpen} onOpenChange={setIsComboboxOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={isComboboxOpen}
+              className="w-full sm:w-[200px] justify-between flex-shrink-0" // Fixed width on larger screens
+            >
+              {countryFilter
+                ? countryMap[countryFilter] || countryFilter // Display selected country name
+                : "Country..."}{" "}
+              {/* Placeholder */}
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[--radix-popover-trigger-width] max-h-[--radix-popover-content-available-height] p-0">
+            <Command>
+              <CommandInput placeholder="Search country..." />
+              {/* Wrap CommandList around group/empty/items for scrolling */}
+              <CommandList>
+                <CommandEmpty>No country found.</CommandEmpty>
+                <CommandGroup>
+                  {/* Option to clear filter */}
+                  <CommandItem
+                    key="all-countries"
+                    value="" // Use empty string for "All"
+                    onSelect={() => {
+                      handleSelectCountry(""); // Call handler with empty string
+                    }}
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        countryFilter === "" ? "opacity-100" : "opacity-0" // Show check if "" is selected
+                      )}
+                    />
+                    All Countries
+                  </CommandItem>
+                  {/* Map available countries */}
+                  {availableCountries.map((country) => (
+                    <CommandItem
+                      key={country.code}
+                      value={country.code} // Use code as the value for selection logic
+                      onSelect={(currentValue) => {
+                        // currentValue will be the country.code here
+                        handleSelectCountry(
+                          currentValue === countryFilter ? "" : currentValue
+                        );
+                        // Optional: Toggle behavior - uncomment above line and comment below
+                        // handleSelectCountry(currentValue); // Select the country
+                      }}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          countryFilter === country.code
+                            ? "opacity-100"
+                            : "opacity-0" // Show check if this country is selected
+                        )}
+                      />
+                      {country.name} {/* Display the country name */}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
       </div>
       {/* Network Cards */}
       <ScrollArea className="h-[70vh]">
@@ -204,14 +281,6 @@ export default function NetworkList({
           </Button>
         </div>
       )}
-      {/* Modal */}
-      <CountryFilterModal
-        isOpen={isCountryModalOpen}
-        onOpenChange={setIsCountryModalOpen}
-        availableCountries={availableCountries}
-        selectedCountryCode={countryFilter}
-        onSelectCountry={handleSelectCountry}
-      />
     </div>
   );
 }
