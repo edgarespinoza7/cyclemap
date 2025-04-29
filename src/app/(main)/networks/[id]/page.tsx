@@ -1,24 +1,7 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-
-
-interface RentalUris {
-  android: string;
-  ios: string;
-}
-
-interface StationExtra {
-  uid: string;
-  renting: number;
-  returning: number;
-  last_updated: number;
-  has_ebikes: boolean;
-  ebikes: number;
-  payment: string[];
-  "payment-terminal": boolean;
-  slots: number;
-  rental_uris: RentalUris;
-}
+// import { DataTable } from "./data-table";
+// import { columns } from "./columns";
 
 interface Station {
   id: string;
@@ -28,7 +11,20 @@ interface Station {
   timestamp: string;
   free_bikes: number;
   empty_slots: number;
-  extra: StationExtra;
+  extra: {
+    uid: string;
+    renting: number;
+    returning: number;
+    last_updated: number;
+    has_ebikes: boolean;
+    ebikes: number;
+    payment: string[];
+    "payment-terminal": boolean;
+    slots: number;
+    rental_uris: {
+      [key: string]: string;
+    };
+  };
 }
 
 interface NetworkDetails {
@@ -88,18 +84,28 @@ export default async function NetworkDetailPage({
     );
   }
 
+  const stations = networkDetails.stations || [];
+
   return (
-    <div className="p-4 space-y-4">
-      <Button asChild variant="outline" size="sm">
+    <div className="container mx-auto py-10 px-4 space-y-6">
+      <Button asChild variant="outline" size="sm" className="mb-4">
         <Link href="/">← Back to List</Link>
       </Button>
-      <h2 className="text-2xl font-bold">{networkDetails.name}</h2>
-      <p className="text-muted-foreground">
-        {networkDetails.location?.city}, {networkDetails.location?.country}
-      </p>
-      <p>{networkDetails.company?.join(", ") || "N/A"}</p>
-      <p>All {networkDetails.stations?.length || 0} Stations</p>
-    
+      <h2 className="text-3xl font-bold tracking-tight">
+        {networkDetails.name}
+      </h2>
+      <div className="text-muted-foreground space-x-2">
+        <p>
+          {networkDetails.location?.city}, {networkDetails.location?.country}
+        </p>
+        {networkDetails.company && networkDetails.company.length > 0 && (
+          <>
+            
+            <p>{networkDetails.company.join(", ")}</p>
+          </>
+        )}
+      </div>   
+      <p>All {stations.length} Stations</p>
     </div>
   );
 }

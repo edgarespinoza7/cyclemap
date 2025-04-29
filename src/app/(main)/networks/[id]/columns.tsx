@@ -1,6 +1,6 @@
 "use client"
 import { ColumnDef } from "@tanstack/react-table";
-import Station from "./page";
+
 
 // Define the Station type
 interface Station {
@@ -30,7 +30,7 @@ interface Station {
 
 export const columns: ColumnDef<Station, unknown>[] = [
   {
-    accessorKey: "station_name",
+    accessorKey: "name",
     header: "Station Name",
   },
   {
