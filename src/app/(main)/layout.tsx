@@ -1,9 +1,7 @@
-// src/app/(main)/layout.tsx
 import { getBikeNetworks } from "@/lib/api";
 import Map from "@/components/Map";
-import Header from "@/components/Header"; // Keep Header if it's static for this section
+import Header from "@/components/Header";
 
-// Define the Network type here or import it if shared
 type Network = {
   id: string;
   name: string;
@@ -20,8 +18,6 @@ export default async function MainLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Fetch networks needed for the map markers initially
-  // This runs server-side
   const networks: Network[] = await getBikeNetworks();
 
   return (
@@ -31,14 +27,11 @@ export default async function MainLayout({
         {/* Static Header for the sidebar section */}
         <Header />
         {/* Dynamic content from page.tsx or networks/[id]/page.tsx goes here */}
-        <div className="flex-grow overflow-y-auto"> {/* Ensure content scrolls */}
-          {children}
-        </div>
+        <div className="flex-grow overflow-y-auto">{children}</div>
       </div>
 
-      {/* Map Area - This will persist */}
+      {/* Map Area */}
       <div className="flex-3/4 h-screen">
-        {/* Pass the networks fetched server-side to the Map */}
         <Map networks={networks} />
       </div>
     </div>

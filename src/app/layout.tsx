@@ -1,4 +1,3 @@
-// src/app/layout.tsx
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { cn } from "@/lib/utils";
@@ -21,7 +20,6 @@ export default async function RootLayout({
       <body
         className={cn(inter.className, "bg-white text-slate-900 min-h-screen")}
       >
-        {/* The main structure is now handled by nested layouts like (main)/layout.tsx */}
         {children}
       </body>
     </html>

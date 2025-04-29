@@ -27,8 +27,6 @@ interface AdditionalData {
   stations: number;
 }
 
-
-
 export default function NetworkList({ networks }: { networks: Network[] }) {
   const [search, setSearch] = useState("");
   const [countryFilter, setCountryFilter] = useState("");
@@ -36,13 +34,23 @@ export default function NetworkList({ networks }: { networks: Network[] }) {
   const pageSize = 6;
   const router = useRouter();
 
-  const [additionalData, setAdditionalData] = useState<Record<string, AdditionalData>>({});
+  const [additionalData, setAdditionalData] = useState<
+    Record<string, AdditionalData>
+  >({});
 
-  // Fetch additional data for a specific network
+
   const fetchAdditionalData = async (id: string) => {
     try {
       const response = await fetch(`http://api.citybik.es/v2/networks/${id}`);
+
+      
+
+      if (!response.ok) {
+        throw new Error(`API request failed for ID ${id} with status ${response.status}: ${response.statusText}`);
+      }
+
       const data = await response.json();
+      
       setAdditionalData((prev) => ({
         ...prev,
         [id]: {
@@ -50,8 +58,12 @@ export default function NetworkList({ networks }: { networks: Network[] }) {
           stations: data.network.stations?.length || 0,
         },
       }));
+      console.log(data);
     } catch (error) {
-      console.error(`Failed to fetch additional data for network ${id}:`, error);
+      console.error(
+        `Failed to fetch additional data for network ${id}:`,
+        error
+      );
     }
   };
 
@@ -62,7 +74,7 @@ export default function NetworkList({ networks }: { networks: Network[] }) {
   const countries = Array.from(new Set(networks.map((n) => n.location.country)))
     .map((code) => ({
       code,
-      name: countryMap[code] || code, // Fallback to code if name is not found
+      name: countryMap[code] || code, 
     }))
     .sort((a, b) => a.name.localeCompare(b.name));
 
@@ -79,7 +91,6 @@ export default function NetworkList({ networks }: { networks: Network[] }) {
   const totalPages = Math.ceil(filtered.length / pageSize);
 
   useEffect(() => {
-    // Fetch additional data for all paginated networks
     paginated.forEach((network) => {
       if (!additionalData[network.id]) {
         fetchAdditionalData(network.id);
@@ -128,7 +139,9 @@ export default function NetworkList({ networks }: { networks: Network[] }) {
                 </p>
                 {additionalData[network.id] && (
                   <div className="mt-2 text-sm text-muted-foreground">
-                    <p>Company: {additionalData[network.id].company.join(", ")}</p>
+                    <p>
+                      Company: {additionalData[network.id].company.join(", ")}
+                    </p>
                     <p>Stations: {additionalData[network.id].stations}</p>
                   </div>
                 )}
