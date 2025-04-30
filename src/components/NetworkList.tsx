@@ -29,6 +29,16 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+// Pagination imports
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 export default function NetworkList({
   networks,
@@ -151,7 +161,64 @@ export default function NetworkList({
   const handleSelectCountry = (countryCode: string) => {
     setCountryFilter(countryCode);
     setPage(1);
+    setIsComboboxOpen(false);
   };
+
+  const getPaginationRange = (
+    currentPage: number,
+    totalPages: number,
+    siblingCount = 1 
+  ): (number | string)[] => {
+    const totalPageNumbers = siblingCount + 5; 
+
+    // Case 1: If the number of pages is less than the page numbers we want to show
+    if (totalPageNumbers >= totalPages) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    const leftSiblingIndex = Math.max(currentPage - siblingCount, 1);
+    const rightSiblingIndex = Math.min(currentPage + siblingCount, totalPages);
+
+    const shouldShowLeftDots = leftSiblingIndex > 2;
+    const shouldShowRightDots = rightSiblingIndex < totalPages - 1;
+
+    const firstPageIndex = 1;
+    const lastPageIndex = totalPages;
+
+    // Case 2: No left dots to show, but right dots to be shown
+    if (!shouldShowLeftDots && shouldShowRightDots) {
+      const leftItemCount = 3 + 2 * siblingCount;
+      const leftRange = Array.from({ length: leftItemCount }, (_, i) => i + 1);
+      return [...leftRange, "...", totalPages];
+    }
+
+    // Case 3: No right dots to show, but left dots to be shown
+    if (shouldShowLeftDots && !shouldShowRightDots) {
+      const rightItemCount = 3 + 2 * siblingCount;
+      const rightRange = Array.from(
+        { length: rightItemCount },
+        (_, i) => totalPages - rightItemCount + i + 1
+      );
+      return [firstPageIndex, "...", ...rightRange];
+    }
+
+    // Case 4: Both left and right dots to be shown
+    if (shouldShowLeftDots && shouldShowRightDots) {
+      const middleRange = Array.from(
+        { length: rightSiblingIndex - leftSiblingIndex + 1 },
+        (_, i) => leftSiblingIndex + i
+      );
+      return [firstPageIndex, "...", ...middleRange, "...", lastPageIndex];
+    }
+
+    // Default case (should not happen with above logic, but for safety)
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  };
+
+  const paginationRange = useMemo(() => {
+     return getPaginationRange(page, totalPages);
+  }, [page, totalPages]);
+  // --- End Pagination Helper ---
 
   return (
     <div className="space-y-4 px-4 pt-2 overflow-y-auto h-full flex flex-col">
@@ -260,25 +327,57 @@ export default function NetworkList({
           ))}
         </div>
       </ScrollArea>
-      {/* Pagination Controls */}
       {totalPages > 1 && (
-        <div className="flex justify-center gap-2">
-          <Button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-            size="sm"
-            variant="outline"
-          >
-            Previous
-          </Button>
-          <Button
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-            size="sm"
-            variant="outline"
-          >
-            Next
-          </Button>
+        <div className="flex justify-center pt-2"> {/* Center the pagination */}
+          <Pagination>
+            <PaginationContent>
+              {/* Previous Button */}
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  // Add aria-disabled for accessibility, Shadcn might style based on this
+                  aria-disabled={page === 1}
+                  // Add Tailwind class for visual disabling
+                  className={
+                    page === 1
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
+                />
+              </PaginationItem>
+
+              {/* Page Numbers and Ellipses */}
+              {paginationRange.map((pageNumber, index) => (
+                <PaginationItem key={index}>
+                  {typeof pageNumber === "string" ? (
+                    <PaginationEllipsis />
+                  ) : (
+                    <PaginationLink
+                      onClick={() => setPage(pageNumber)}
+                      isActive={page === pageNumber}
+                      aria-current={page === pageNumber ? "page" : undefined}
+                      className="cursor-pointer" // Ensure links look clickable
+                    >
+                      {pageNumber}
+                    </PaginationLink>
+                  )}
+                </PaginationItem>
+              ))}
+
+              {/* Next Button */}
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  aria-disabled={page === totalPages}
+                  className={
+                    page === totalPages
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
         </div>
       )}
     </div>
