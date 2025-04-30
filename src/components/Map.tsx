@@ -53,11 +53,27 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
   useEffect(() => {
     if (!mapContainer.current || mapRef.current) return;
 
+    // Determine initial map center based on Url path
+    const initialNetworkId = params.id as string | undefined;
+    let initialCenter: [number, number] = [0, 20]; // Default center
+    let initialZoom = 2; // Default zoom level
+
+    if (initialNetworkId) {
+      const targetNetwork = networks.find((n) => n.id === initialNetworkId);
+      if (targetNetwork?.location) {
+        initialCenter = [
+          targetNetwork.location.longitude,
+          targetNetwork.location.latitude,
+        ];
+        initialZoom = 12; // Zoom closer for detail view
+      }
+    }
+
     const map = new mapboxgl.Map({
       container: mapContainer.current,
       style: "mapbox://styles/mapbox/light-v11",
-      center: [0, 20],
-      zoom: 2,
+      center: initialCenter,
+      zoom: initialZoom,
       projection: "mercator",
       antialias: true,
     });
@@ -105,7 +121,9 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
           "circle-stroke-width": 2,
           "circle-stroke-color": "rgba(124, 45, 18, 1)",
         },
-        filter: ["==", ["get", "id"], ""], // Initially filter out everything
+        filter: initialNetworkId
+          ? ["==", ["get", "id"], initialNetworkId]
+          : ["==", ["get", "id"], ""],
       });
 
       // 2. Adds Source and Layer for Stations (initially empty)
@@ -230,6 +248,10 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
           .setHTML(popMessage)
           .addTo(mapInstance);
       });
+      // Fetch stations immediately if we loaded on a detail page
+      if (initialNetworkId) {
+        fetchStationsForNetwork(initialNetworkId);
+      }
     });
 
     // Map Cleanup
@@ -264,11 +286,30 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
 
     if (networkId) {
       // We are on a network detail page
-      const targetNetwork: NetworkMapSummary | undefined = networks.find(
-        (n) => n.id === networkId
-      );
-      // Fly to network location
+      const targetNetwork = networks.find((n) => n.id === networkId);
+
+      // Check if we need to animate the map view
+      let needsFlyTo = true;
+
       if (targetNetwork?.location) {
+        const currentCenter = map.getCenter();
+        const currentZoom = map.getZoom();
+        const targetCoords: [number, number] = [
+          targetNetwork.location.longitude,
+          targetNetwork.location.latitude,
+        ];
+        // Check if map is already roughly centered and zoomed (avoids flyTo on reload)
+        if (
+          Math.abs(currentCenter.lng - targetCoords[0]) < 0.001 &&
+          Math.abs(currentCenter.lat - targetCoords[1]) < 0.001 &&
+          Math.abs(currentZoom - 12) < 0.1
+        ) {
+          needsFlyTo = false;
+        }
+      }
+
+      // Fly to network location only if needed (i.e., during navigation, not reload)
+      if (needsFlyTo && targetNetwork?.location) {
         map.flyTo({
           center: [
             targetNetwork.location.longitude,
@@ -278,9 +319,9 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
           essential: true,
         });
       }
-
-      // Fetch stations for this network ID
-      fetchStationsForNetwork(networkId); // This will update currentStations state
+      // Fetch stations if not already loaded or if network changed
+      // (Simple fetch here is okay, but could be optimized further if needed)
+      fetchStationsForNetwork(networkId);
     } else {
       // We are on the main list page (or other page without network id)
       setCurrentStations(null); // Clear station state
@@ -288,8 +329,19 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
       // Fly back to overview
       if (pathname === "/") {
         if (map.getZoom() > 4) {
-          // Only fly back if zoomed in
-          map.flyTo({ center: [0, 20], zoom: 2, essential: true });
+          const currentCenter = map.getCenter();
+          const currentZoom = map.getZoom();
+          let needsFlyTo = true;
+          if (
+            Math.abs(currentCenter.lng - 0) < 0.001 &&
+            Math.abs(currentCenter.lat - 20) < 0.001 &&
+            Math.abs(currentZoom - 2) < 0.1
+          ) {
+            needsFlyTo = false;
+          }
+          if (needsFlyTo) {
+            map.flyTo({ center: [0, 20], zoom: 2, essential: true });
+          }
         }
         // Close any open popup when returning home
         if (popupRef.current) {
@@ -297,6 +349,7 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
           popupRef.current = null;
         }
       }
+
       if (stationSource) {
         stationSource.setData(convertStationsToGeoJSON([]));
       }
