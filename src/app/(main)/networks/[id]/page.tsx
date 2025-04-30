@@ -2,13 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { DataTable } from "./data-table";
-import { columns } from "./columns";
-import { countryMap } from "@/lib/countryUtils";
+import NetworkDetailDisplay from "@/components/NetworkDetailDisplay";
 import type { NetworkDetails, Station } from "@/lib/types";
-
-
-
 
 
 async function getNetworkDetails(id: string): Promise<NetworkDetails | null> {
@@ -65,35 +60,9 @@ export default async function NetworkDetailPage({
   const stations: Station[] = networkDetails.stations || [];
 
   return (
-    <div className="container mx-auto py-10 px-4 space-y-6">
-      <Button asChild variant="outline" size="sm" className="mb-4">
-        <Link href="/">← Back to List</Link>
-      </Button>
-      <h2 className="text-3xl font-bold tracking-tight">
-        {networkDetails.name}
-      </h2>
-      <div className="text-muted-foreground space-x-2">
-      {networkDetails.location && (
-           <p>
-            {networkDetails.location.city},{" "}
-            {countryMap[networkDetails.location.country ?? ""] ||
-              networkDetails.location.country}
-          </p>
-        )}
-        {networkDetails.company && networkDetails.company.length > 0 && (
-          <p>{networkDetails.company.join(", ")}</p>
-        )}
-      </div>
-      <p>
-        All{" "}
-        <span className="border border-orange-500 rounded p-1">
-          {stations.length}
-        </span>{" "}
-        Stations
-      </p>
-      <div className="mt-8">
-        <DataTable columns={columns} data={stations} />
-      </div>
-    </div>
+    <NetworkDetailDisplay
+      networkDetails={networkDetails}
+      stations={stations}
+    />
   );
 }
