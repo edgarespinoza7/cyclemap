@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { countryMap } from "@/lib/countryUtils";
 import Header from "./Header";
 import type {
@@ -40,16 +40,20 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 
+
+
 export default function NetworkList({
   networks,
 }: {
   networks: NetworkListItem[];
 }) {
-  const [search, setSearch] = useState("");
-  const [countryFilter, setCountryFilter] = useState("");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [search, setSearch] = useState(() => searchParams.get("search") || "");
+  const [countryFilter, setCountryFilter] = useState(() => searchParams.get("country") || "");
   const [page, setPage] = useState(1);
   const pageSize = 6;
-  const router = useRouter();
   const [additionalData, setAdditionalData] = useState<
     Record<string, NetworkListAdditionalData>
   >({});
@@ -157,19 +161,22 @@ export default function NetworkList({
     });
   }, [paginated, additionalData]);
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+  }
+
   // Callback function to update the filter from the combobox
   const handleSelectCountry = (countryCode: string) => {
     setCountryFilter(countryCode);
-    setPage(1);
     setIsComboboxOpen(false);
   };
 
   const getPaginationRange = (
     currentPage: number,
     totalPages: number,
-    siblingCount = 1 
+    siblingCount = 1
   ): (number | string)[] => {
-    const totalPageNumbers = siblingCount + 5; 
+    const totalPageNumbers = siblingCount + 5;
 
     // Case 1: If the number of pages is less than the page numbers we want to show
     if (totalPageNumbers >= totalPages) {
@@ -216,9 +223,44 @@ export default function NetworkList({
   };
 
   const paginationRange = useMemo(() => {
-     return getPaginationRange(page, totalPages);
+    return getPaginationRange(page, totalPages);
   }, [page, totalPages]);
-  // --- End Pagination Helper ---
+
+  const updateQueryParams = useCallback((newSearch: string, newCountry: string) => {
+
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (newSearch) {
+      params.set("search", newSearch);
+    } else {
+      params.delete("search");
+    }
+    if (newCountry) {
+      params.set("country", newCountry);
+    } else {
+      params.delete("country");
+    }
+
+    params.delete("page"); // Remove page from query params
+
+    router.push(`${pathname}?${params.toString()}`, {
+      scroll: false});
+       },
+    [pathname, router, searchParams]
+  );
+
+  useEffect( () => {
+    const currentSearchInUrl = searchParams.get("search") || "";
+    const currentCountryInUrl = searchParams.get("country") || "";
+
+    if(search !== currentSearchInUrl || countryFilter !== currentCountryInUrl) {
+      updateQueryParams(search, countryFilter);
+    }
+  }, [search, countryFilter, updateQueryParams, searchParams]);
+
+  useEffect(() => {
+    setPage(1); // Reset page to 1 when networks change
+  }, [search, countryFilter]);
 
   return (
     <div className="space-y-4 px-4 pt-2 overflow-y-auto h-full flex flex-col">
@@ -228,7 +270,7 @@ export default function NetworkList({
         <Input
           placeholder="Search network"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={handleSearchChange}
         />
         <Popover open={isComboboxOpen} onOpenChange={setIsComboboxOpen}>
           <PopoverTrigger asChild>
@@ -255,7 +297,7 @@ export default function NetworkList({
                   {/* Option to clear filter */}
                   <CommandItem
                     key="all-countries"
-                    value="" // Use empty string for "All"
+                    value="All Countries" // Use empty string for "All"
                     onSelect={() => {
                       handleSelectCountry(""); // Call handler with empty string
                     }}
@@ -272,14 +314,20 @@ export default function NetworkList({
                   {availableCountries.map((country) => (
                     <CommandItem
                       key={country.code}
-                      value={country.code} // Use code as the value for selection logic
+                      value={country.name} // Use code as the value for selection logic
                       onSelect={(currentValue) => {
-                        // currentValue will be the country.code here
-                        handleSelectCountry(
-                          currentValue === countryFilter ? "" : currentValue
+                        const selectedCountry = availableCountries.find(
+                          (c) => c.name === currentValue
                         );
-                        // Optional: Toggle behavior - uncomment above line and comment below
-                        // handleSelectCountry(currentValue); // Select the country
+
+                        const codeToSet = selectedCountry
+                          ? selectedCountry.code
+                          : "";
+
+                        const shouldClear = countryFilter === codeToSet;
+
+                        handleSelectCountry(shouldClear ? "" : codeToSet);
+                        
                       }}
                     >
                       <Check
@@ -328,7 +376,9 @@ export default function NetworkList({
         </div>
       </ScrollArea>
       {totalPages > 1 && (
-        <div className="flex justify-center pt-2"> {/* Center the pagination */}
+        <div className="flex justify-center pt-2">
+          {" "}
+          {/* Center the pagination */}
           <Pagination>
             <PaginationContent>
               {/* Previous Button */}
