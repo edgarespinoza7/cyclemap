@@ -5,9 +5,13 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useParams, usePathname } from "next/navigation";
-import { convertNetworksToGeoJSON, convertStationsToGeoJSON } from "@/lib/geojsonUtils";
+import {
+  convertNetworksToGeoJSON,
+  convertStationsToGeoJSON,
+} from "@/lib/geojsonUtils";
 import type { Point } from "geojson";
 import type { NetworkMapSummary, Station } from "@/lib/types";
+import { getNetworkDetailsById } from "@/lib/api";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
@@ -18,7 +22,6 @@ const NETWORK_HIGHLIGHT_LAYER_ID = "network-points-highlight-layer";
 // Station Source/Layer IDs
 const STATION_SOURCE_ID = "station-locations";
 const STATION_LAYER_ID = "station-points-layer";
-
 
 export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -32,22 +35,17 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
     null
   );
 
-
-
   // Fetchs stations for a specific network
   const fetchStationsForNetwork = async (networkId: string) => {
     try {
-      const response = await fetch(
-        `http://api.citybik.es/v2/networks/${networkId}`
-      );
-      if (!response.ok) {
-        throw new Error(`Failed to fetch stations for ${networkId}`);
+      const networkDetails = await getNetworkDetailsById(networkId);
+      if (!networkDetails) {
+        throw new Error(`Network with ID ${networkId} not found`);
       }
-      const data = await response.json();
-      setCurrentStations(data.network.stations || []); // Set state
+      setCurrentStations(networkDetails.stations || []);
     } catch (error) {
       console.error("Error fetching station data:", error);
-      setCurrentStations(null); // Clear stations on error
+      setCurrentStations(null);
     }
   };
 
@@ -113,7 +111,7 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
       // 2. Adds Source and Layer for Stations (initially empty)
       mapInstance.addSource(STATION_SOURCE_ID, {
         type: "geojson",
-        data: convertStationsToGeoJSON([]), 
+        data: convertStationsToGeoJSON([]),
       });
 
       // Adds a layer for the station points
@@ -122,24 +120,24 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
         type: "circle",
         source: STATION_SOURCE_ID,
         paint: {
-          "circle-radius": 4, 
+          "circle-radius": 4,
           "circle-color": "rgba(34, 197, 94, 0.8)", // Green color for stations
           "circle-stroke-width": 1,
           "circle-stroke-color": "rgb(22, 163, 74)",
         },
       });
 
-      // Network Hover Effects 
+      // Network Hover Effects
       let hoveredNetworkId: string | number | null = null;
 
       mapInstance.on("mouseenter", NETWORK_LAYER_ID, (e) => {
         if (e.features && e.features.length > 0) {
           mapInstance.getCanvas().style.cursor = "pointer";
-          const featureId = e.features[0].properties?.id; 
+          const featureId = e.features[0].properties?.id;
           if (hoveredNetworkId !== null && hoveredNetworkId !== featureId) {
             // Updates feature state using the property ID
             mapInstance.setFeatureState(
-              { source: NETWORK_SOURCE_ID, id: hoveredNetworkId }, 
+              { source: NETWORK_SOURCE_ID, id: hoveredNetworkId },
               { hover: false }
             );
           }
@@ -166,7 +164,6 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
 
       // Network Click Popup
       mapInstance.on("click", NETWORK_LAYER_ID, (e) => {
-       
         if (!e.features || e.features.length === 0) return;
         const feature = e.features[0];
         const coordinates = (feature.geometry as Point).coordinates.slice();
@@ -193,7 +190,6 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
           .setHTML(popMessage)
           .addTo(mapInstance);
       });
- 
 
       // Station Click Popup
       mapInstance.on("click", STATION_LAYER_ID, (e) => {
@@ -234,7 +230,6 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
           .setHTML(popMessage)
           .addTo(mapInstance);
       });
-  
     });
 
     // Map Cleanup
@@ -247,7 +242,7 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
       }
     };
     // Run only once on mount
-  }, [networks]); 
+  }, [networks]);
 
   // Handles Route Changes (Zoom, Highlight, Fetch/Display Stations)
   useEffect(() => {
@@ -306,7 +301,7 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
         stationSource.setData(convertStationsToGeoJSON([]));
       }
     }
-  }, [params, pathname, networks]); // Add convertStationsToGeoJSON
+  }, [params, pathname, networks]);
 
   // Updates Station Layer When State Changes
   useEffect(() => {
@@ -316,14 +311,11 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
       | undefined;
 
     if (map && map.isStyleLoaded() && stationSource) {
-     
       stationSource.setData(convertStationsToGeoJSON(currentStations || []));
     }
-  }, [currentStations]); // Depend on station state
-
+  }, [currentStations]);
 
   // Handles the "Near me" button
-  // It uses the Geolocation API to get the user's current position and set it as the map center
   const handleLocate = () => {
     if (!mapRef.current) {
       console.error("Map is not initialized yet.");

@@ -3,28 +3,11 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import NetworkDetailDisplay from "@/components/NetworkDetailDisplay";
-import type { NetworkDetails, Station } from "@/lib/types";
+import { getNetworkDetailsById } from "@/lib/api";
+import type { Station } from "@/lib/types";
 
 
-async function getNetworkDetails(id: string): Promise<NetworkDetails | null> {
-  try {
-    const response = await fetch(`http://api.citybik.es/v2/networks/${id}`, {
-      next: { revalidate: 600 },
-    });
-    if (!response.ok) {
-      console.error(
-        `API Error for ${id}: ${response.status} ${response.statusText}`
-      );
-      return null;
-    }
-    const data = await response.json();
 
-    return data.network as NetworkDetails;
-  } catch (error) {
-    console.error(`Failed to fetch details for network ${id}:`, error);
-    return null;
-  }
-}
 
 export default async function NetworkDetailPage({
   params,
@@ -44,7 +27,7 @@ export default async function NetworkDetailPage({
     );
   }
 
-  const networkDetails = await getNetworkDetails(id);
+  const networkDetails = await getNetworkDetailsById(id);
 
   if (!networkDetails) {
     return (
