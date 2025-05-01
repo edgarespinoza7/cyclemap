@@ -115,14 +115,14 @@ export function DataTable<TData, TValue>({
 
   return (
     <div>
-      <div className="rounded-md">
+      <div>
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead key={header.id} className="text-white uppercase">
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -196,7 +196,7 @@ export function DataTable<TData, TValue>({
                       aria-current={
                         currentPage === pageNumber ? "page" : undefined
                       }
-                      className="cursor-pointer" // Ensure links look clickable
+                      className="cursor-pointer text-white active:text-[#33347C]" // Ensure links look clickable
                     >
                       {pageNumber}
                     </PaginationLink>

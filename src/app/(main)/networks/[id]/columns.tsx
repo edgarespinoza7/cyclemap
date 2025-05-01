@@ -17,7 +17,7 @@ const SortableHeader = <TData, TValue>({
     <Button
       variant="ghost"
       onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      className="-ml-4" // Adjust margin to align text visually
+      className="-ml-4 uppercase" // Adjust margin to align text visually
     >
       {title}
       <ArrowUpDown className="ml-2 h-4 w-4" />

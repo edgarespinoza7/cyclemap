@@ -25,7 +25,7 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={cn(poppins.className, "bg-white text-slate-900 min-h-screen")}
+        className={cn(poppins.className, "bg-white text-slate-900 h-screen")}
       >
         {children}
       </body>

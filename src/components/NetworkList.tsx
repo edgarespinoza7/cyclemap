@@ -57,8 +57,8 @@ export default function NetworkList({
   const [countryFilter, setCountryFilter] = useState(
     () => searchParams.get("country") || ""
   );
-  const [page, setPage] = useState(1);
-  const pageSize = 7;
+  const [page, setPage] = useState(1); // Current page number
+  const pageSize = 7; // Number of items per page 
   const [additionalData, setAdditionalData] = useState<
     Record<string, NetworkListAdditionalData>
   >({});
@@ -366,7 +366,7 @@ export default function NetworkList({
         </Popover>
       </div>
       {/* Network Cards */}
-      <ScrollArea className="h-[75vh]">
+      <ScrollArea className="h-screen scrollbar-hide overflow-y-auto">
         <div>
           {paginated.map((network) => (
             <Card
@@ -398,10 +398,11 @@ export default function NetworkList({
             </Card>
           ))}
         </div>
+ 
         {/* Pagination Controls */}
         {/* Only show if there are multiple pages */}
         {totalPages > 1 && (
-          <div className="flex justify-center pt-2">
+          <div className="flex justify-center pt-2 mt-4">
             {" "}
             {/* Center the pagination */}
             <Pagination>

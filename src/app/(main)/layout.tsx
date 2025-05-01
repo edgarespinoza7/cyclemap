@@ -20,7 +20,7 @@ export default async function MainLayout({
   const networks: Network[] = await getBikeNetworks();
 
   return (
-    <div className="h-screen flex flex-col md:flex-row">
+    <div className="h-screen flex flex-col md:flex-row ">
       {/* Sidebar Area */}
       <div className="flex-1/4 min-h-[40vh] md:h-screen overflow-auto flex flex-col">
   
