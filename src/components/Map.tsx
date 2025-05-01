@@ -12,6 +12,7 @@ import {
 import type { Point } from "geojson";
 import type { NetworkMapSummary, Station } from "@/lib/types";
 import { getNetworkDetailsById } from "@/lib/api";
+import { Locate, Plus, Minus } from "lucide-react";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
@@ -412,12 +413,32 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
   return (
     <div className="relative h-full w-full">
       <div ref={mapContainer} className="absolute inset-0 h-full w-full" />
-      <div className="absolute top-4 left-4 z-10">
-        <Button onClick={handleLocate}>Near me</Button>
+      <div className="absolute top-8 left-8 z-10">
+        <Button
+          onClick={handleLocate}
+          className="bg-[#363698] rounded-2xl hover:bg-[#5050DB]"
+        >
+          <span>
+            <Locate />
+          </span>
+          Near me
+        </Button>
       </div>
-      <div className="absolute top-4 right-4 z-10 flex flex-col space-y-2">
-        <Button onClick={handleZoomIn}>+</Button>
-        <Button onClick={handleZoomOut}>-</Button>
+      <div className="absolute top-8 right-6 z-10 flex flex-col shadow-xl bg-white rounded-2xl">
+        <Button
+          variant="ghost"
+          onClick={handleZoomIn}
+          className="rounded-t-2xl rounded-b-none"
+        >
+          <Plus className="text-[#363698] " />
+        </Button>
+        <Button
+          variant="ghost"
+          onClick={handleZoomOut}
+          className="rounded-b-2xl rounded-t-none"
+        >
+          <Minus className="text-[#363698]" />
+        </Button>
       </div>
     </div>
   );
