@@ -19,13 +19,7 @@ import type {
   Country,
 } from "@/lib/types";
 // Combobox and Popover imports
-import {
-  Check,
-  ChevronsUpDown,
-  MapPin,
-  BriefcaseBusiness,
-  Search,
-} from "lucide-react";
+import { Check, MapPin, BriefcaseBusiness, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Command,
@@ -291,7 +285,6 @@ export default function NetworkList({
             aria-hidden="true"
           />
           <Input
-          
             placeholder="Search network"
             value={search}
             onChange={handleSearchChange}
@@ -301,10 +294,9 @@ export default function NetworkList({
         <Popover open={isComboboxOpen} onOpenChange={setIsComboboxOpen}>
           <PopoverTrigger asChild>
             <Button
-              variant="ghost"
               role="combobox"
               aria-expanded={isComboboxOpen}
-              className="rounded-full h-12 w-full sm:w-[114px] justify-start flex-shrink-0 text-[#363698] border-[#E2EAFD] border-1 "
+              className="bg-white hover:bg-[#E2EAFD] rounded-full h-12 w-full sm:w-[114px] justify-start flex-shrink-0 text-[#363698] border-[#E2EAFD] border-1 "
               onClick={() => setIsComboboxOpen((prev) => !prev)} // Toggle combobox open state
             >
               <MapPin className="left-4 size-4 shrink-0 text-[#363698]" />
@@ -341,6 +333,7 @@ export default function NetworkList({
                     <CommandItem
                       key={country.code}
                       value={country.name} // Use code as the value for selection logic
+                      className="hover:bg-[#E2EAFD] cursor-pointer"
                       onSelect={(currentValue) => {
                         const selectedCountry = availableCountries.find(
                           (c) => c.name === currentValue
@@ -397,7 +390,8 @@ export default function NetworkList({
                   <CardDescription className="pb-2 flex gap-2 items-center">
                     <div className="text-[#F37B44] bg-[#EFF4FE] p-1 rounded-md">
                       <BriefcaseBusiness className="stroke-1" />
-                    </div>{additionalData[network.id].company.join(", ")}
+                    </div>
+                    {additionalData[network.id].company.join(", ")}
                   </CardDescription>
                 )}
               </CardContent>
@@ -437,7 +431,7 @@ export default function NetworkList({
                         onClick={() => setPage(pageNumber)}
                         isActive={page === pageNumber}
                         aria-current={page === pageNumber ? "page" : undefined}
-                        className="cursor-pointer" // Ensure links look clickable
+                        className="cursor-pointer text-[#33347C] hover:bg-[#E2EAFD]" // Ensure links look clickable
                       >
                         {pageNumber}
                       </PaginationLink>

@@ -423,7 +423,7 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
     );
   };
 
-  // Zoom in and zoom out handlers
+  // Zoom in / zoom out handlers
   const handleZoomIn = () => {
     if (mapRef.current) {
       mapRef.current.zoomIn();
