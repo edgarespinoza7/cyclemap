@@ -154,12 +154,7 @@ export function DataTable<TData, TValue>({
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No results.
-                </TableCell>
+                <TableCell colSpan={columns.length}>No results.</TableCell>
               </TableRow>
             )}
           </TableBody>
@@ -196,7 +191,7 @@ export function DataTable<TData, TValue>({
                       aria-current={
                         currentPage === pageNumber ? "page" : undefined
                       }
-                      className="cursor-pointer text-white active:text-[#33347C]" // Ensure links look clickable
+                      className="cursor-pointer font-semibold active:text-[#33347C]" // Ensure links look clickable
                     >
                       {pageNumber}
                     </PaginationLink>
