@@ -4,7 +4,7 @@ import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useParams, usePathname } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import {
   convertNetworksToGeoJSON,
   convertStationsToGeoJSON,
@@ -30,6 +30,7 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
   const popupRef = useRef<mapboxgl.Popup | null>(null);
   const params = useParams();
   const pathname = usePathname();
+  const router = useRouter();
 
   // State for Stations
   const [currentStations, setCurrentStations] = useState<Station[] | null>(
@@ -139,10 +140,10 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
         type: "circle",
         source: STATION_SOURCE_ID,
         paint: {
-          "circle-radius": 4,
-          "circle-color": "rgba(34, 197, 94, 0.8)", // Green color for stations
+          "circle-radius": 5,
+          "circle-color": "rgba(243, 123, 68, 0.8)",
           "circle-stroke-width": 1,
-          "circle-stroke-color": "rgb(22, 163, 74)",
+          "circle-stroke-color": "rgb(243, 123, 68)",
         },
       });
 
@@ -198,7 +199,12 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
           coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
         }
 
-        const popMessage = `<div class="p-2 max-w-xs"><p class="font-bold text-center text-base">${properties?.name}</p><p class="text-sm text-center">${properties?.city}, ${properties?.country}</p></div>`;
+        const popMessage = `
+        <div class="p-2 max-w-xs text-center">
+          <p class="font-bold text-base">${properties?.name}</p>
+          <p class="text-sm mb-2">${properties?.city}, ${properties?.country}</p>
+          <button id="view-network-button" data-network-id="${properties?.id}" class="text-sm text-blue-600 hover:underline focus:outline-none">View Details</button>
+        </div>`;
 
         if (popupRef.current) popupRef.current.remove();
         popupRef.current = new mapboxgl.Popup({
@@ -208,6 +214,20 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
           .setLngLat(coordinates as [number, number])
           .setHTML(popMessage)
           .addTo(mapInstance);
+
+        // Event listener AFTER the popup is added to the DOM
+        const popupNode = popupRef.current?.getElement();
+        const viewButton = popupNode?.querySelector("#view-network-button");
+
+        if (viewButton) {
+          viewButton.addEventListener("click", (event) => {
+            const target = event.target as HTMLButtonElement;
+            const networkId = target.getAttribute("data-network-id");
+            if (networkId) {
+              router.push(`/networks/${networkId}`);
+            }
+          });
+        }
       });
 
       // Station Click Popup
@@ -319,6 +339,12 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
           zoom: 12, // Zoom closer for detail view
           essential: true,
         });
+
+        // Close the popup after initiating the flyTo animation
+        if (popupRef.current) {
+          popupRef.current.remove();
+          popupRef.current = null;
+        }
       }
       // Fetch stations if not already loaded or if network changed
       // (Simple fetch here is okay, but could be optimized further if needed)
