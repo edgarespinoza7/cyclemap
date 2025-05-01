@@ -20,39 +20,47 @@ export default function NetworkDetailDisplay({
   const router = useRouter();
 
   return (
-    <div className="container mx-auto bg-[#363698] text-white">
-      <div className="bg-[url('/network-detail-bgimage.jpg')] bg-cover bg-center bg-no-repeat">
-        <div className="relative pl-10 pr-6">
-          <Button
-            className="bg-white text-[#F37B44] hover:bg-[#F37B44] hover:text-white cursor-pointer rounded-full p-5 absolute top-8 left-10"
-            onClick={() => router.back()}
-          >
-            <MoveLeft className="w-24 h-24 stroke-2" />
-          </Button>
-          <h2 className="font-bold text-3xl pt-6">{networkDetails.name}</h2>
-          <div>
-            {networkDetails.location && (
-              <div className="flex items-center space-x-2 pt-4">
-                <MapPin />
-                <p className="text-base ">
-                  {networkDetails.location.city},{" "}
-                  {countryMap[networkDetails.location.country ?? ""] ||
-                    networkDetails.location.country}
-                </p>
+    <div className="container mx-auto bg-[#363698] text-white overflow-x-auto h-screen scrollbar-hide">
+      <div className="relative bg-[url('/network-detail-bgimage.jpg')] bg-cover bg-center bg-no-repeat pl-10 py-8 pr-6 h-[252px]">
+        <div>
+          <div className="absolute inset-0 bg-gradient-to-t from-[#363698] to-transparent"></div>
+          <div className="relative z-10">
+            <Button
+              className="bg-white text-[#F37B44] hover:bg-[#F37B44] hover:text-white cursor-pointer rounded-full p-5"
+              onClick={() => router.back()}
+            >
+              <MoveLeft className="w-24 h-24 stroke-2" />
+            </Button>
+            <div className="mt-10 ">
+              <h2 className="font-bold text-3xl">{networkDetails.name}</h2>
+              <div className="mt-2 flex flex-col space-y-2">
+                {networkDetails.location && (
+                  <div className="flex items-center space-x-2">
+                    <MapPin />
+                    <p className="text-base ">
+                      {networkDetails.location.city},{" "}
+                      {countryMap[networkDetails.location.country ?? ""] ||
+                        networkDetails.location.country}
+                    </p>
+                  </div>
+                )}
+                {networkDetails.company &&
+                  networkDetails.company.length > 0 && (
+                    <div className="flex items-start space-x-2">
+                      <BriefcaseBusiness size={20} className="stroke-2" />
+                      <p className="text-base">
+                        {networkDetails.company.join(", ")}
+                      </p>
+                    </div>
+                  )}
               </div>
-            )}
-            {networkDetails.company && networkDetails.company.length > 0 && (
-              <div className="flex items-start space-x-2 pt-4">
-                <BriefcaseBusiness size={30} className="stroke-2" />
-                <p>{networkDetails.company.join(", ")}</p>
-              </div>
-            )}
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="px-10 pt-2">
-        <div className="pl-2 mb-3">
+      <div className="px-10 overflow-y-auto scrollbar-hide">
+        <div className="pl-2 pt-2">
           <p>
             All{" "}
             <span className="border border-orange-500 rounded p-1">
@@ -61,6 +69,7 @@ export default function NetworkDetailDisplay({
             stations
           </p>
         </div>
+
         <DataTable columns={columns} data={stations}></DataTable>
       </div>
     </div>
