@@ -17,6 +17,12 @@ import { useMapInteraction } from "@/context/MapInteractionContext";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
+
+// Default Map View Settings
+const DEFAULT_MAP_CENTER: [number, number] = [0, 20];
+const DEFAULT_MAP_ZOOM = 2;
+const DETAIL_MAP_ZOOM = 12;
+
 // Network Source/Layer IDs
 const NETWORK_SOURCE_ID = "network-locations";
 const NETWORK_LAYER_ID = "network-points-layer";
@@ -24,6 +30,57 @@ const NETWORK_HIGHLIGHT_LAYER_ID = "network-points-highlight-layer";
 // Station Source/Layer IDs
 const STATION_SOURCE_ID = "station-locations";
 const STATION_LAYER_ID = "station-points-layer";
+
+// --- Helper Functions ---
+
+/**
+ * Creates and displays a Mapbox GL Popup.
+ * Removes any existing popup managed by the popupRef.
+Unchanged lines
+ * @param htmlContent The HTML content for the popup.
+ * @param popupRef Ref to store the popup instance.
+ */
+
+const createAndShowPopup = (
+  map: mapboxgl.Map,
+  coordinates: [number, number],
+  htmlContent: string,
+  popupRef: React.MutableRefObject<mapboxgl.Popup | null>
+) => {
+  if (popupRef.current) {
+    popupRef.current.remove();
+  }
+  popupRef.current = new mapboxgl.Popup({
+    offset: 15,
+    closeButton: false,
+    closeOnClick: false, // Keep open until explicitly closed or replaced
+  })
+    .setLngLat(coordinates)
+    .setHTML(htmlContent)
+    .addTo(map);
+  return popupRef.current; // Return the new popup instance
+};
+
+/**
+ * Checks if the map needs to fly to a new location/zoom.
+ * Avoids unnecessary animations if the map is already close to the target.
+ */
+const shouldFlyTo = (
+  map: mapboxgl.Map,
+  targetCoords: [number, number],
+  targetZoom: number,
+  tolerance = 0.001 // How close is considered "close enough"
+): boolean => {
+  const currentCenter = map.getCenter();
+  const currentZoom = map.getZoom();
+  const lngDiff = Math.abs(currentCenter.lng - targetCoords[0]);
+  const latDiff = Math.abs(currentCenter.lat - targetCoords[1]);
+  const zoomDiff = Math.abs(currentZoom - targetZoom);
+
+  return lngDiff > tolerance || latDiff > tolerance || zoomDiff > 0.1;
+};
+
+
 
 export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -33,70 +90,40 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
   const pathname = usePathname();
   const router = useRouter();
   const { selectedStation } = useMapInteraction();
-
-  // State for Stations
-  const [currentStations, setCurrentStations] = useState<Station[] | null>(
-    null
-  );
-
-  // Fetchs stations for a specific network
-  const fetchStationsForNetwork = async (networkId: string) => {
-    try {
-      const networkDetails = await getNetworkDetailsById(networkId);
-      if (!networkDetails) {
-        throw new Error(`Network with ID ${networkId} not found`);
+    // State for Stations
+    const [currentStations, setCurrentStations] = useState<Station[] | null>(
+      null
+    );
+  
+    // Fetchs stations for a specific network
+    const fetchStationsForNetwork = async (networkId: string) => {
+      try {
+        const networkDetails = await getNetworkDetailsById(networkId);
+        if (!networkDetails) {
+          throw new Error(`Network with ID ${networkId} not found`);
+        }
+        setCurrentStations(networkDetails.stations || []);
+      } catch (error) {
+        console.error("Error fetching station data:", error);
+        setCurrentStations(null);
       }
-      setCurrentStations(networkDetails.stations || []);
-    } catch (error) {
-      console.error("Error fetching station data:", error);
-      setCurrentStations(null);
-    }
-  };
+    };
 
-  // Initializes the map and set up layers and event listeners
-  useEffect(() => {
-    if (!mapContainer.current || mapRef.current) return;
+  // --- Map Setup Functions ---
 
-    // Determine initial map center based on Url path
-    const initialNetworkId = params.id as string | undefined;
-    let initialCenter: [number, number] = [0, 20]; // Default center
-    let initialZoom = 2; // Default zoom level
-
-    if (initialNetworkId) {
-      const targetNetwork = networks.find((n) => n.id === initialNetworkId);
-      if (targetNetwork?.location) {
-        initialCenter = [
-          targetNetwork.location.longitude,
-          targetNetwork.location.latitude,
-        ];
-        initialZoom = 12; // Zoom closer for detail view
-      }
-    }
-
-    const map = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: "mapbox://styles/mapbox/light-v11",
-      center: initialCenter,
-      zoom: initialZoom,
-      projection: "mercator",
-      antialias: true,
-    });
-
-    mapRef.current = map;
-
-    map.on("load", () => {
-      if (!mapRef.current) return;
-      const mapInstance = mapRef.current; // Use local variable for clarity
-
-      // 1. Add Source and Layers for Networks
-      const networkGeojsonData = convertNetworksToGeoJSON(networks);
-      mapInstance.addSource(NETWORK_SOURCE_ID, {
+  /** Sets up the sources and layers for networks and stations */
+  const setupMapLayers = (map: mapboxgl.Map, initialNetworkId?: string) => {
+    // 1. Add Source and Layers for Networks
+    const networkGeojsonData = convertNetworksToGeoJSON(networks);
+    if (!map.getSource(NETWORK_SOURCE_ID)) {
+      map.addSource(NETWORK_SOURCE_ID, {
         type: "geojson",
         data: networkGeojsonData,
       });
+    }
 
-      // Add a layer for the network points
-      mapInstance.addLayer({
+    if (!map.getLayer(NETWORK_LAYER_ID)) {
+      map.addLayer({
         id: NETWORK_LAYER_ID,
         type: "circle",
         source: NETWORK_SOURCE_ID,
@@ -105,17 +132,18 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
           "circle-color": "rgba(249, 115, 22, 0.7)", // Orange color for networks
           "circle-stroke-width": 1,
           "circle-stroke-color": "rgb(249, 115, 22)",
-          "circle-opacity": [
+          "circle-opacity": [ // Use feature-state for hover effect
             "case",
             ["boolean", ["feature-state", "hover"], false],
-            1,
-            0.7,
+            1, // Opacity when hovered
+            0.7, // Default opacity
           ],
         },
       });
+    }
 
-      // Adds a highlight layer for the network points
-      mapInstance.addLayer({
+    if (!map.getLayer(NETWORK_HIGHLIGHT_LAYER_ID)) {
+      map.addLayer({
         id: NETWORK_HIGHLIGHT_LAYER_ID,
         type: "circle",
         source: NETWORK_SOURCE_ID,
@@ -127,150 +155,188 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
         },
         filter: initialNetworkId
           ? ["==", ["get", "id"], initialNetworkId]
-          : ["==", ["get", "id"], ""],
+          : ["==", ["get", "id"], ""], // Initially filter to nothing if no ID
       });
+    }
 
-      // 2. Adds Source and Layer for Stations (initially empty)
-      mapInstance.addSource(STATION_SOURCE_ID, {
+    // 2. Adds Source and Layer for Stations (initially empty)
+    if (!map.getSource(STATION_SOURCE_ID)) {
+      map.addSource(STATION_SOURCE_ID, {
         type: "geojson",
-        data: convertStationsToGeoJSON([]),
+        data: convertStationsToGeoJSON([]), // Start empty
       });
+    }
 
-      // Adds a layer for the station points
-      mapInstance.addLayer({
+    if (!map.getLayer(STATION_LAYER_ID)) {
+      map.addLayer({
         id: STATION_LAYER_ID,
         type: "circle",
         source: STATION_SOURCE_ID,
         paint: {
           "circle-radius": 5,
-          "circle-color": "rgba(243, 123, 68, 0.8)",
+          "circle-color": "rgba(243, 123, 68, 0.8)", // Slightly different orange for stations
           "circle-stroke-width": 1,
           "circle-stroke-color": "rgb(243, 123, 68)",
         },
       });
+    }
+  };
 
-      // Network Hover Effects
-      let hoveredNetworkId: string | number | null = null;
+  /** Sets up map event listeners (hover, click) */
+  const setupMapEventListeners = (map: mapboxgl.Map) => {
+    let hoveredNetworkId: string | number | null = null;
 
-      mapInstance.on("mouseenter", NETWORK_LAYER_ID, (e) => {
-        if (e.features && e.features.length > 0) {
-          mapInstance.getCanvas().style.cursor = "pointer";
-          const featureId = e.features[0].properties?.id;
-          if (hoveredNetworkId !== null && hoveredNetworkId !== featureId) {
-            // Updates feature state using the property ID
-            mapInstance.setFeatureState(
-              { source: NETWORK_SOURCE_ID, id: hoveredNetworkId },
-              { hover: false }
-            );
-          }
-          hoveredNetworkId = featureId;
-          if (hoveredNetworkId !== null) {
-            mapInstance.setFeatureState(
-              { source: NETWORK_SOURCE_ID, id: hoveredNetworkId },
-              { hover: true }
-            );
-          }
-        }
-      });
-
-      mapInstance.on("mouseleave", NETWORK_LAYER_ID, () => {
-        mapInstance.getCanvas().style.cursor = "";
-        if (hoveredNetworkId !== null) {
-          mapInstance.setFeatureState(
+    // --- Network Hover Listeners ---
+    map.on("mouseenter", NETWORK_LAYER_ID, (e) => {
+      // ... (rest of mouseenter logic remains the same)
+      if (e.features && e.features.length > 0) {
+        map.getCanvas().style.cursor = "pointer";
+        const featureId = e.features[0].id; // Use feature id directly if available and numeric
+        if (hoveredNetworkId !== null && hoveredNetworkId !== featureId) {
+          map.setFeatureState(
             { source: NETWORK_SOURCE_ID, id: hoveredNetworkId },
             { hover: false }
           );
         }
-        hoveredNetworkId = null;
-      });
-
-      // Network Click Popup
-      mapInstance.on("click", NETWORK_LAYER_ID, (e) => {
-        if (!e.features || e.features.length === 0) return;
-        const feature = e.features[0];
-        const coordinates = (feature.geometry as Point).coordinates.slice();
-        const properties = feature.properties;
-
-        if (
-          typeof coordinates[0] !== "number" ||
-          typeof coordinates[1] !== "number"
-        )
-          return;
-
-        while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-          coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+        hoveredNetworkId = featureId ?? null;
+        if (hoveredNetworkId !== null) {
+          map.setFeatureState(
+            { source: NETWORK_SOURCE_ID, id: hoveredNetworkId },
+            { hover: true }
+          );
         }
+      }
+    });
 
-        const popMessage = `
-        <div class="p-2 max-w-xs text-center">
-          <p class="font-bold text-base">${properties?.name}</p>
-          <p class="text-sm mb-2">${properties?.city}, ${properties?.country}</p>
-          <button id="view-network-button" data-network-id="${properties?.id}" class="text-sm text-blue-600 hover:underline focus:outline-none">View Details</button>
-        </div>`;
+    map.on("mouseleave", NETWORK_LAYER_ID, () => {
+      // ... (rest of mouseleave logic remains the same)
+      map.getCanvas().style.cursor = "";
+      if (hoveredNetworkId !== null) {
+        map.setFeatureState(
+          { source: NETWORK_SOURCE_ID, id: hoveredNetworkId },
+          { hover: false }
+        );
+      }
+      hoveredNetworkId = null;
+    });
 
-        if (popupRef.current) popupRef.current.remove();
-        popupRef.current = new mapboxgl.Popup({
-          offset: 15,
-          closeButton: false,
-        })
-          .setLngLat(coordinates as [number, number])
-          .setHTML(popMessage)
-          .addTo(mapInstance);
+    // --- Network Click Listener ---
+    map.on("click", NETWORK_LAYER_ID, (e) => {
+      // ... (rest of network click logic remains the same, but use createAndShowPopup)
+      if (!e.features || e.features.length === 0) return;
+      const feature = e.features[0];
+      const coordinates = (feature.geometry as Point).coordinates.slice();
+      const properties = feature.properties;
 
-        // Event listener AFTER the popup is added to the DOM
-        const popupNode = popupRef.current?.getElement();
-        const viewButton = popupNode?.querySelector("#view-network-button");
+      if (
+        typeof coordinates[0] !== "number" ||
+        typeof coordinates[1] !== "number"
+      )
+        return;
 
-        if (viewButton) {
-          viewButton.addEventListener("click", (event) => {
-            const target = event.target as HTMLButtonElement;
-            const networkId = target.getAttribute("data-network-id");
-            if (networkId) {
-              router.push(`/networks/${networkId}`);
-            }
-          });
-        }
-      });
+      // Adjust longitude for map wrapping
+      while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+        coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+      }
 
-      // Station Click Popup
-      mapInstance.on("click", STATION_LAYER_ID, (e) => {
-        if (!e.features || e.features.length === 0) return;
-        const feature = e.features[0];
-        const coordinates = (feature.geometry as Point).coordinates.slice();
-        const properties = feature.properties; // Contains name, free_bikes, etc.
+      const popMessage = `
+      <div class="p-2 max-w-xs text-center">
+        <p class="font-bold text-base">${properties?.name}</p>
+        <p class="text-sm mb-2">${properties?.city}, ${properties?.country}</p>
+        <button id="view-network-button" data-network-id="${properties?.id}" class="text-sm text-blue-600 hover:underline focus:outline-none">View Details</button>
+      </div>`;
 
-        if (
-          typeof coordinates[0] !== "number" ||
-          typeof coordinates[1] !== "number"
-        )
-          return;
+      const popup = createAndShowPopup(map, coordinates as [number, number], popMessage, popupRef);
 
-        while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-          coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
-        }
+      // Add event listener to the button inside the new popup
+      const popupNode = popup?.getElement();
+      const viewButton = popupNode?.querySelector("#view-network-button");
+      if (viewButton) {
+        // Use a one-time listener or manage removal if popup can be closed manually
+        viewButton.addEventListener("click", (event) => {
+          const target = event.target as HTMLButtonElement;
+          const networkId = target.getAttribute("data-network-id");
+          if (networkId) {
+            router.push(`/networks/${networkId}`);
+          }
+        }, { once: true }); // Add listener only once
+      }
+    });
 
-        // Customize popup for stations
-        const popMessage = `<div class="p-2 max-w-md min-w-45">
-        <p class="font-bold text-base break-all">${properties?.name}</p>
-        <div class="flex justify-between items-center text-sm mt-2">
-        <p class="text-muted-foreground">Free Bikes</p>
-        <p class="font-bold">${properties?.free_bikes}</p>
-        </div>
-        <div class="flex justify-between items-center text-sm">
-        <p class="text-muted-foreground">Empty Slots</p>
-        <p class="font-bold">${properties?.empty_slots}</p>
-        </div>
-        </div>`;
+    // --- Station Click Listener ---
+    map.on("click", STATION_LAYER_ID, (e) => {
+      // ... (rest of station click logic remains the same, but use createAndShowPopup)
+      if (!e.features || e.features.length === 0) return;
+      const feature = e.features[0];
+      const coordinates = (feature.geometry as Point).coordinates.slice();
+      const properties = feature.properties; // Contains name, free_bikes, etc.
 
-        if (popupRef.current) popupRef.current.remove();
-        popupRef.current = new mapboxgl.Popup({
-          offset: 15,
-          closeButton: false,
-        })
-          .setLngLat(coordinates as [number, number])
-          .setHTML(popMessage)
-          .addTo(mapInstance);
-      });
+      if (
+        typeof coordinates[0] !== "number" ||
+        typeof coordinates[1] !== "number"
+      )
+        return;
+
+      while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+        coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+      }
+
+      const popMessage = `<div class="p-2 max-w-md min-w-45">
+      <p class="font-bold text-base break-all">${properties?.name}</p>
+      <div class="flex justify-between items-center text-sm mt-2">
+      <p class="text-muted-foreground">Free Bikes</p>
+      <p class="font-bold">${properties?.free_bikes ?? 'N/A'}</p>
+      </div>
+      <div class="flex justify-between items-center text-sm">
+      <p class="text-muted-foreground">Empty Slots</p>
+      <p class="font-bold">${properties?.empty_slots ?? 'N/A'}</p>
+      </div>
+      </div>`;
+
+      createAndShowPopup(map, coordinates as [number, number], popMessage, popupRef);
+    });
+  };
+
+
+
+  // Initializes the map and set up layers and event listeners
+  useEffect(() => {
+    if (!mapContainer.current || mapRef.current) return;
+
+    // Determine initial map center based on Url path
+    const initialNetworkId = params.id as string | undefined;
+    let initialCenter = DEFAULT_MAP_CENTER;
+    let initialZoom = DEFAULT_MAP_ZOOM;
+
+    if (initialNetworkId) {
+      const targetNetwork = networks.find((n) => n.id === initialNetworkId);
+      if (targetNetwork?.location) {
+        initialCenter = [
+          targetNetwork.location.longitude,
+          targetNetwork.location.latitude,
+        ];
+        initialZoom = DETAIL_MAP_ZOOM; // Zoom closer for detail view
+      }
+    }
+
+    const map = new mapboxgl.Map({
+      container: mapContainer.current!,
+      style: "mapbox://styles/mapbox/light-v11",
+      center: initialCenter,
+      zoom: initialZoom,
+      projection: "mercator",
+      antialias: true,
+    });
+
+    mapRef.current = map;
+
+    map.on("load", () => {
+      if (!mapRef.current) return;
+     
+      const map = mapRef.current;
+      setupMapLayers(map, initialNetworkId);
+      setupMapEventListeners(map);
+
       // Fetch stations immediately if we loaded on a detail page
       if (initialNetworkId) {
         fetchStationsForNetwork(initialNetworkId);
@@ -286,8 +352,10 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
         popupRef.current = null;
       }
     };
-    // Run only once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [networks]);
+  // Reason: We only want to initialize the map instance once.
+    // Subsequent route changes and view updates are handled by the second useEffect.
 
   // Handles Route Changes (Zoom, Highlight, Fetch/Display Stations)
   useEffect(() => {
@@ -311,28 +379,24 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
       // We are on a network detail page
       const targetNetwork = networks.find((n) => n.id === networkId);
 
-      // Check if we need to animate the map view
-      let needsFlyTo = true;
+   
 
       if (targetNetwork?.location) {
-        const currentCenter = map.getCenter();
-        const currentZoom = map.getZoom();
+        
         const targetCoords: [number, number] = [
           targetNetwork.location.longitude,
           targetNetwork.location.latitude,
         ];
         // Check if map is already roughly centered and zoomed (avoids flyTo on reload)
-        if (
-          Math.abs(currentCenter.lng - targetCoords[0]) < 0.001 &&
-          Math.abs(currentCenter.lat - targetCoords[1]) < 0.001 &&
-          Math.abs(currentZoom - 12) < 0.1
-        ) {
-          needsFlyTo = false;
-        }
-      }
+       
 
       // Fly to network location only if needed (i.e., during navigation, not reload)
-      if (needsFlyTo && targetNetwork?.location) {
+      if (shouldFlyTo(map, targetCoords, DETAIL_MAP_ZOOM)) {
+        // Close any existing popup *before* flying
+        popupRef.current?.remove();
+        popupRef.current = null;
+
+
         map.flyTo({
           center: [
             targetNetwork.location.longitude,
@@ -342,11 +406,7 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
           essential: true,
         });
 
-        // Close the popup after initiating the flyTo animation
-        if (popupRef.current) {
-          popupRef.current.remove();
-          popupRef.current = null;
-        }
+      
       }
       // Fetch stations if not already loaded or if network changed
       // (Simple fetch here is okay, but could be optimized further if needed)
@@ -356,20 +416,11 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
       setCurrentStations(null); // Clear station state
 
       // Fly back to overview
-      if (pathname === "/") {
-        if (map.getZoom() > 4) {
-          const currentCenter = map.getCenter();
-          const currentZoom = map.getZoom();
-          let needsFlyTo = true;
-          if (
-            Math.abs(currentCenter.lng - 0) < 0.001 &&
-            Math.abs(currentCenter.lat - 20) < 0.001 &&
-            Math.abs(currentZoom - 2) < 0.1
-          ) {
-            needsFlyTo = false;
-          }
-          if (needsFlyTo) {
-            map.flyTo({ center: [0, 20], zoom: 2, essential: true });
+      if (pathname === "/") { // Only fly home if we are actually on the home path
+        if (shouldFlyTo(map, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM)) {
+          // Close any existing popup *before* flying
+          popupRef.current?.remove();
+          popupRef.current = null;
           }
         }
         // Close any open popup when returning home
@@ -397,7 +448,7 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
     }
   }, [currentStations]);
 
-  // Effect to handle showing popup when selectedStation changes via context
+  // Handles showing popup when selectedStation changes via context
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !map.isStyleLoaded() || !selectedStation) {
@@ -414,11 +465,7 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
       selectedStation;
     const coordinates: [number, number] = [longitude, latitude];
 
-    // Remove existing popup before creating a new one
-    if (popupRef.current) {
-      popupRef.current.remove();
-    }
-
+  
     // Create popup content
     const popMessage = `<div class="p-2 max-w-md min-w-45">
       <p class="font-bold text-base break-all">${name}</p>
@@ -432,17 +479,12 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
       </div>
     </div>`;
 
-    // Create and add the new popup
-    popupRef.current = new mapboxgl.Popup({
-      offset: 15,
-      closeButton: false, // Allow user to close it manually
-      closeOnClick: false, // Keep popup open even if map is clicked elsewhere
-    })
-      .setLngLat(coordinates)
-      .setHTML(popMessage)
-      .addTo(map);
+    // Use the helper function to create/show the popup
+    createAndShowPopup(map, coordinates, popMessage, popupRef);
 
-    // Optional: Fly to the station
+
+
+    // Optional: Fly to the station if desired when selected from the list
     // map.flyTo({ center: coordinates, zoom: 15 }); // Adjust zoom as needed
   }, [selectedStation]); // Re-run when the selected station from context changes
 
