@@ -245,8 +245,8 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
       const popMessage = `
       <div class="p-2 max-w-xs text-center">
         <p class="font-bold text-lg text-[#363698]">${properties?.name}</p>
-        <p class="text-sm mb-2">${properties?.city}, ${properties?.country}</p>
-        <button id="view-network-button" data-network-id="${properties?.id}" class="text-xs focus:outline-none cursor-pointer hover:bg-[#E2EAFD] py-1.5 px-2.5 border border-[#CAD7FB] rounded-full text-[#363698]">View Details</button>
+        <p class="text-sm text-muted-foreground   mb-2">${properties?.city}, ${properties?.country}</p>
+        <button id="view-network-button" data-network-id="${properties?.id}" class="mt-2 text-xs focus:outline-none cursor-pointer hover:bg-[#E2EAFD] transition-colors duration-150 ease-in-out py-1.5 px-4 border border-[#CAD7FB] rounded-full text-[#363698]">View Details</button>
       </div>`;
 
       const popup = createAndShowPopup(
@@ -299,11 +299,13 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
       }</p>
       <div class="flex justify-between items-center text-sm mt-2">
       <p class="text-muted-foreground">Free Bikes</p>
-      <p class="font-bold">${properties?.free_bikes ?? "N/A"}</p>
+      <p class="font-bold text-[#363698]">${properties?.free_bikes ?? "N/A"}</p>
       </div>
       <div class="flex justify-between items-center text-sm">
       <p class="text-muted-foreground">Empty Slots</p>
-      <p class="font-bold">${properties?.empty_slots ?? "N/A"}</p>
+      <p class="font-bold text-[#363698]">${
+        properties?.empty_slots ?? "N/A"
+      }</p>
       </div>
       </div>`;
 
@@ -313,6 +315,15 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
         popMessage,
         popupRef
       );
+    });
+
+    // --- Station Hover Listeners ---
+    map.on("mouseenter", STATION_LAYER_ID, () => {
+      map.getCanvas().style.cursor = "pointer"; // Change cursor to pointer
+    });
+
+    map.on("mouseleave", STATION_LAYER_ID, () => {
+      map.getCanvas().style.cursor = ""; // Change cursor back to default
     });
   };
 

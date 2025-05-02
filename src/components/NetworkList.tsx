@@ -46,8 +46,6 @@ import {
 import NetworkCard from "./NetworkCard"; // Import the new component
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 
-
-
 export default function NetworkList({
   networks,
 }: {
