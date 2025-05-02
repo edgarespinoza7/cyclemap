@@ -4,7 +4,7 @@ import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useParams, usePathname, useRouter } from "next/navigation";
+import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   convertNetworksToGeoJSON,
   convertStationsToGeoJSON,
@@ -16,7 +16,6 @@ import { Locate, Plus, Minus } from "lucide-react";
 import { useMapInteraction } from "@/context/MapInteractionContext";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
-
 
 // Default Map View Settings
 const DEFAULT_MAP_CENTER: [number, number] = [0, 20];
@@ -80,34 +79,33 @@ const shouldFlyTo = (
   return lngDiff > tolerance || latDiff > tolerance || zoomDiff > 0.1;
 };
 
-
-
 export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const popupRef = useRef<mapboxgl.Popup | null>(null);
   const params = useParams();
+  const searchParams = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
   const { selectedStation } = useMapInteraction();
-    // State for Stations
-    const [currentStations, setCurrentStations] = useState<Station[] | null>(
-      null
-    );
-  
-    // Fetchs stations for a specific network
-    const fetchStationsForNetwork = async (networkId: string) => {
-      try {
-        const networkDetails = await getNetworkDetailsById(networkId);
-        if (!networkDetails) {
-          throw new Error(`Network with ID ${networkId} not found`);
-        }
-        setCurrentStations(networkDetails.stations || []);
-      } catch (error) {
-        console.error("Error fetching station data:", error);
-        setCurrentStations(null);
+  // State for Stations
+  const [currentStations, setCurrentStations] = useState<Station[] | null>(
+    null
+  );
+
+  // Fetchs stations for a specific network
+  const fetchStationsForNetwork = async (networkId: string) => {
+    try {
+      const networkDetails = await getNetworkDetailsById(networkId);
+      if (!networkDetails) {
+        throw new Error(`Network with ID ${networkId} not found`);
       }
-    };
+      setCurrentStations(networkDetails.stations || []);
+    } catch (error) {
+      console.error("Error fetching station data:", error);
+      setCurrentStations(null);
+    }
+  };
 
   // --- Map Setup Functions ---
 
@@ -132,7 +130,8 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
           "circle-color": "rgba(249, 115, 22, 0.7)", // Orange color for networks
           "circle-stroke-width": 1,
           "circle-stroke-color": "rgb(249, 115, 22)",
-          "circle-opacity": [ // Use feature-state for hover effect
+          "circle-opacity": [
+            // Use feature-state for hover effect
             "case",
             ["boolean", ["feature-state", "hover"], false],
             1, // Opacity when hovered
@@ -246,20 +245,29 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
         <button id="view-network-button" data-network-id="${properties?.id}" class="text-sm text-blue-600 hover:underline focus:outline-none">View Details</button>
       </div>`;
 
-      const popup = createAndShowPopup(map, coordinates as [number, number], popMessage, popupRef);
+      const popup = createAndShowPopup(
+        map,
+        coordinates as [number, number],
+        popMessage,
+        popupRef
+      );
 
       // Add event listener to the button inside the new popup
       const popupNode = popup?.getElement();
       const viewButton = popupNode?.querySelector("#view-network-button");
       if (viewButton) {
         // Use a one-time listener or manage removal if popup can be closed manually
-        viewButton.addEventListener("click", (event) => {
-          const target = event.target as HTMLButtonElement;
-          const networkId = target.getAttribute("data-network-id");
-          if (networkId) {
-            router.push(`/networks/${networkId}`);
-          }
-        }, { once: true }); // Add listener only once
+        viewButton.addEventListener(
+          "click",
+          (event) => {
+            const target = event.target as HTMLButtonElement;
+            const networkId = target.getAttribute("data-network-id");
+            if (networkId) {
+              router.push(`/networks/${networkId}`);
+            }
+          },
+          { once: true }
+        ); // Add listener only once
       }
     });
 
@@ -285,19 +293,22 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
       <p class="font-bold text-base break-all">${properties?.name}</p>
       <div class="flex justify-between items-center text-sm mt-2">
       <p class="text-muted-foreground">Free Bikes</p>
-      <p class="font-bold">${properties?.free_bikes ?? 'N/A'}</p>
+      <p class="font-bold">${properties?.free_bikes ?? "N/A"}</p>
       </div>
       <div class="flex justify-between items-center text-sm">
       <p class="text-muted-foreground">Empty Slots</p>
-      <p class="font-bold">${properties?.empty_slots ?? 'N/A'}</p>
+      <p class="font-bold">${properties?.empty_slots ?? "N/A"}</p>
       </div>
       </div>`;
 
-      createAndShowPopup(map, coordinates as [number, number], popMessage, popupRef);
+      createAndShowPopup(
+        map,
+        coordinates as [number, number],
+        popMessage,
+        popupRef
+      );
     });
   };
-
-
 
   // Initializes the map and set up layers and event listeners
   useEffect(() => {
@@ -332,7 +343,7 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
 
     map.on("load", () => {
       if (!mapRef.current) return;
-     
+
       const map = mapRef.current;
       setupMapLayers(map, initialNetworkId);
       setupMapEventListeners(map);
@@ -353,9 +364,9 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [networks]);
+  }, []);
   // Reason: We only want to initialize the map instance once.
-    // Subsequent route changes and view updates are handled by the second useEffect.
+  // Subsequent route changes and view updates are handled by the second useEffect.
 
   // Handles Route Changes (Zoom, Highlight, Fetch/Display Stations)
   useEffect(() => {
@@ -363,6 +374,7 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
     if (!map || !map.isStyleLoaded()) return;
 
     const networkId = params.id as string | undefined;
+    
 
     // Updates Network Highlight Layer
     map.setFilter(
@@ -371,70 +383,72 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
     );
 
     // --- Logic for fetching and displaying stations ---
-    const stationSource = map.getSource(STATION_SOURCE_ID) as
-      | mapboxgl.GeoJSONSource
-      | undefined;
+    
 
     if (networkId) {
-      // We are on a network detail page
+      
       const targetNetwork = networks.find((n) => n.id === networkId);
 
-   
-
       if (targetNetwork?.location) {
-        
         const targetCoords: [number, number] = [
           targetNetwork.location.longitude,
           targetNetwork.location.latitude,
         ];
-        // Check if map is already roughly centered and zoomed (avoids flyTo on reload)
+   
+
+        // Fly to network location only if needed (i.e., during navigation, not reload)
+        if (shouldFlyTo(map, targetCoords, DETAIL_MAP_ZOOM)) {
        
-
-      // Fly to network location only if needed (i.e., during navigation, not reload)
-      if (shouldFlyTo(map, targetCoords, DETAIL_MAP_ZOOM)) {
-        // Close any existing popup *before* flying
-        popupRef.current?.remove();
-        popupRef.current = null;
-
-
-        map.flyTo({
-          center: [
-            targetNetwork.location.longitude,
-            targetNetwork.location.latitude,
-          ],
-          zoom: 12, // Zoom closer for detail view
-          essential: true,
-        });
-
-      
-      }
-      // Fetch stations if not already loaded or if network changed
-      // (Simple fetch here is okay, but could be optimized further if needed)
-      fetchStationsForNetwork(networkId);
-    } else {
-      // We are on the main list page (or other page without network id)
-      setCurrentStations(null); // Clear station state
-
-      // Fly back to overview
-      if (pathname === "/") { // Only fly home if we are actually on the home path
-        if (shouldFlyTo(map, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM)) {
-          // Close any existing popup *before* flying
           popupRef.current?.remove();
           popupRef.current = null;
+          
+
+          map.flyTo({
+            center: [
+              targetNetwork.location.longitude,
+              targetNetwork.location.latitude,
+            ],
+            zoom: 12, // Zoom closer for detail view
+            essential: true,
+          });
+        }
+        // Fetch stations for the selected network
+        fetchStationsForNetwork(networkId);
+      } else {
+        // Network ID in URL, but not found in networks list? Handle error or clear state.
+        console.warn(`Network with ID ${networkId} not found in provided list.`);
+        setCurrentStations(null); // Clear station state
+        // Optionally fly home if network not found
+        // if (shouldFlyTo(map, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM)) { ... }
+      }
+    } else {
+      // --- We are NOT on a network detail page (e.g., home page '/') ---
+      setCurrentStations(null); // Clear station state as we are not viewing a specific network
+
+   // Fly back to overview if on the home page and map isn't already there
+      // This handles both navigating back AND clearing filters like "All Countries"
+        if (pathname === "/") {
+          
+          if (shouldFlyTo(map, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM)) {
+            // Close any existing popup *before* flying
+            popupRef.current?.remove();
+            popupRef.current = null;
+            // Fly back to the default overview
+            map.flyTo({
+              center: DEFAULT_MAP_CENTER,
+              zoom: DEFAULT_MAP_ZOOM,
+              essential: true,
+            });
           }
         }
-        // Close any open popup when returning home
+     
         if (popupRef.current) {
           popupRef.current.remove();
           popupRef.current = null;
         }
       }
 
-      if (stationSource) {
-        stationSource.setData(convertStationsToGeoJSON([]));
-      }
-    }
-  }, [params, pathname, networks]);
+    }, [params, pathname, searchParams, networks]); // React to route, path, query params, and network list changes
 
   // Updates Station Layer When State Changes
   useEffect(() => {
@@ -465,7 +479,6 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
       selectedStation;
     const coordinates: [number, number] = [longitude, latitude];
 
-  
     // Create popup content
     const popMessage = `<div class="p-2 max-w-md min-w-45">
       <p class="font-bold text-base break-all">${name}</p>
@@ -481,8 +494,6 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
 
     // Use the helper function to create/show the popup
     createAndShowPopup(map, coordinates, popMessage, popupRef);
-
-
 
     // Optional: Fly to the station if desired when selected from the list
     // map.flyTo({ center: coordinates, zoom: 15 }); // Adjust zoom as needed
