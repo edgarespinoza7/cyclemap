@@ -4,7 +4,12 @@ import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import {
   convertNetworksToGeoJSON,
   convertStationsToGeoJSON,
@@ -108,7 +113,6 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
   };
 
   // --- Map Setup Functions ---
-
   /** Sets up the sources and layers for networks and stations */
   const setupMapLayers = (map: mapboxgl.Map, initialNetworkId?: string) => {
     // 1. Add Source and Layers for Networks
@@ -374,7 +378,6 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
     if (!map || !map.isStyleLoaded()) return;
 
     const networkId = params.id as string | undefined;
-    
 
     // Updates Network Highlight Layer
     map.setFilter(
@@ -382,11 +385,8 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
       networkId ? ["==", ["get", "id"], networkId] : ["==", ["get", "id"], ""]
     );
 
-    // --- Logic for fetching and displaying stations ---
-    
-
+    // Logic for fetching and displaying station
     if (networkId) {
-      
       const targetNetwork = networks.find((n) => n.id === networkId);
 
       if (targetNetwork?.location) {
@@ -394,14 +394,11 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
           targetNetwork.location.longitude,
           targetNetwork.location.latitude,
         ];
-   
 
         // Fly to network location only if needed (i.e., during navigation, not reload)
         if (shouldFlyTo(map, targetCoords, DETAIL_MAP_ZOOM)) {
-       
           popupRef.current?.remove();
           popupRef.current = null;
-          
 
           map.flyTo({
             center: [
@@ -416,39 +413,38 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
         fetchStationsForNetwork(networkId);
       } else {
         // Network ID in URL, but not found in networks list? Handle error or clear state.
-        console.warn(`Network with ID ${networkId} not found in provided list.`);
+        console.warn(
+          `Network with ID ${networkId} not found in provided list.`
+        );
         setCurrentStations(null); // Clear station state
         // Optionally fly home if network not found
         // if (shouldFlyTo(map, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM)) { ... }
       }
     } else {
-      // --- We are NOT on a network detail page (e.g., home page '/') ---
       setCurrentStations(null); // Clear station state as we are not viewing a specific network
 
-   // Fly back to overview if on the home page and map isn't already there
+      // Fly back to overview if on the home page and map isn't already there
       // This handles both navigating back AND clearing filters like "All Countries"
-        if (pathname === "/") {
-          
-          if (shouldFlyTo(map, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM)) {
-            // Close any existing popup *before* flying
-            popupRef.current?.remove();
-            popupRef.current = null;
-            // Fly back to the default overview
-            map.flyTo({
-              center: DEFAULT_MAP_CENTER,
-              zoom: DEFAULT_MAP_ZOOM,
-              essential: true,
-            });
-          }
-        }
-     
-        if (popupRef.current) {
-          popupRef.current.remove();
+      if (pathname === "/") {
+        if (shouldFlyTo(map, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM)) {
+          // Close any existing popup *before* flying
+          popupRef.current?.remove();
           popupRef.current = null;
+          // Fly back to the default overview
+          map.flyTo({
+            center: DEFAULT_MAP_CENTER,
+            zoom: DEFAULT_MAP_ZOOM,
+            essential: true,
+          });
         }
       }
 
-    }, [params, pathname, searchParams, networks]); // React to route, path, query params, and network list changes
+      if (popupRef.current) {
+        popupRef.current.remove();
+        popupRef.current = null;
+      }
+    }
+  }, [params, pathname, searchParams, networks]); // React to route, path, query params, and network list changes
 
   // Updates Station Layer When State Changes
   useEffect(() => {

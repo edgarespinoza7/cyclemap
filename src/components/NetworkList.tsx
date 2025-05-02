@@ -19,7 +19,7 @@ import type {
   Country,
 } from "@/lib/types";
 // Combobox and Popover imports
-import { Check, MapPin, BriefcaseBusiness, Search } from "lucide-react";
+import { Check, MapPin, BriefcaseBusiness, Search, MoveRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Command,
@@ -58,7 +58,7 @@ export default function NetworkList({
     () => searchParams.get("country") || ""
   );
   const [page, setPage] = useState(1); // Current page number
-  const pageSize = 7; // Number of items per page 
+  const pageSize = 7; // Number of items per page
   const [additionalData, setAdditionalData] = useState<
     Record<string, NetworkListAdditionalData>
   >({});
@@ -372,7 +372,7 @@ export default function NetworkList({
             <Card
               key={network.id}
               className=" hover:bg-[#E2EAFD] transition-colors duration-300 cursor-pointer p-2 border-b-1 border-b-[#E2EAFD]"
-              onClick={() => handleCardClick(network.id)}
+              
             >
               <CardContent className="p-2 px-4">
                 <CardTitle className="font-semibold text-xl text-[#363698] py-2">
@@ -387,18 +387,24 @@ export default function NetworkList({
                     network.location.country}
                 </CardDescription>
                 {additionalData[network.id] && (
-                  <CardDescription className="pb-2 flex gap-2 items-center">
-                    <div className="text-[#F37B44] bg-[#EFF4FE] p-1 rounded-md">
-                      <BriefcaseBusiness className="stroke-1" />
-                    </div>
-                    {additionalData[network.id].company.join(", ")}
-                  </CardDescription>
+                  <div className="flex flex-col md:flex-row justify-between items-center gap-2">
+                    <CardDescription className="pb-2 flex gap-2 items-center">
+                      <div className="text-[#F37B44] bg-[#EFF4FE] p-1 rounded-md">
+                        <BriefcaseBusiness className="stroke-1" />
+                      </div>
+                      {additionalData[network.id].company.join(", ")}
+                    </CardDescription>
+                    <Button
+                      className="bg-white text-[#F37B44] hover:bg-[#363698] hover:text-white transition-colors duration-300 rounded-full w-full h-10 flex-shrink-0 md:w-[60px] cursor-pointer shadow-md"
+                      onClick={() => handleCardClick(network.id)}
+                    ><MoveRight className="stroke-2 antialiased"/></Button>
+                  </div>
                 )}
               </CardContent>
             </Card>
           ))}
         </div>
- 
+
         {/* Pagination Controls */}
         {/* Only show if there are multiple pages */}
         {totalPages > 1 && (
