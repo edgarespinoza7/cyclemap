@@ -1,25 +1,24 @@
 "use client";
 
+
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardTitle,
-} from "@/components/ui/card";
+
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
+
 import { countryMap } from "@/lib/countryUtils";
 import Header from "./Header";
 import type {
   NetworkListItem,
-  NetworkListAdditionalData,
   Country,
 } from "@/lib/types";
 // Combobox and Popover imports
-import { Check, MapPin, BriefcaseBusiness, Search, MoveRight } from "lucide-react";
+import {
+  Check,
+  MapPin,
+  Search,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Command,
@@ -44,6 +43,10 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import NetworkCard from "./NetworkCard"; // Import the new component
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
+
+
 
 export default function NetworkList({
   networks,
@@ -59,54 +62,10 @@ export default function NetworkList({
   );
   const [page, setPage] = useState(1); // Current page number
   const pageSize = 7; // Number of items per page
-  const [additionalData, setAdditionalData] = useState<
-    Record<string, NetworkListAdditionalData>
-  >({});
 
   // Combobox Open State
   const [isComboboxOpen, setIsComboboxOpen] = useState(false);
 
-  const fetchAdditionalData = async (id: string) => {
-    try {
-      const response = await fetch(`http://api.citybik.es/v2/networks/${id}`, {
-        next: { revalidate: 3600 },
-      });
-
-      if (!response.ok) {
-        throw new Error(
-          `API request failed for ID ${id} with status ${response.status}: ${response.statusText}`
-        );
-      }
-
-      const data = await response.json();
-
-      setAdditionalData((prev) => ({
-        ...prev,
-        [id]: {
-          company: Array.isArray(data.network.company)
-            ? data.network.company
-            : data.network.company
-            ? [data.network.company]
-            : [],
-          stations: data.network.stations?.length || 0,
-        },
-      }));
-      console.log(data);
-    } catch (error) {
-      console.error(
-        `Failed to fetch additional data for network ${id}:`,
-        error
-      );
-      setAdditionalData((prev) => ({
-        ...prev,
-        [id]: { company: [], stations: 0 },
-      }));
-    }
-  };
-
-  const handleCardClick = (id: string) => {
-    router.push(`/networks/${id}`);
-  };
 
   const availableCountries = useMemo(() => {
     return Array.from(new Set(networks.map((n) => n.location.country)))
@@ -129,19 +88,14 @@ export default function NetworkList({
       const searchTermLower = search.toLowerCase();
       if (!searchTermLower) return true;
 
+      // Only filter by name and location initially, as company data isn't available yet
       const matchesName = n.name.toLowerCase().includes(searchTermLower);
 
-      const networkExtraData = additionalData[n.id];
-      const matchesCompany =
-        networkExtraData?.company?.some(
-          (companyName) =>
-            typeof companyName === "string" &&
-            companyName.toLowerCase().includes(searchTermLower)
-        ) ?? false;
-
-      return matchesName || matchesCompany;
+      // Add location filtering if needed, e.g., city:
+      // const matchesCity = n.location.city.toLowerCase().includes(searchTermLower);
+      return matchesName; // || matchesCity;
     });
-  }, [networks, search, countryFilter, additionalData]);
+  }, [networks, search, countryFilter]);
 
   const paginated = useMemo(() => {
     const newTotalPages = Math.ceil(filtered.length / pageSize);
@@ -157,14 +111,6 @@ export default function NetworkList({
     () => Math.ceil(filtered.length / pageSize),
     [filtered, pageSize]
   );
-
-  useEffect(() => {
-    paginated.forEach((network) => {
-      if (!additionalData[network.id]) {
-        fetchAdditionalData(network.id);
-      }
-    });
-  }, [paginated, additionalData]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
@@ -248,9 +194,7 @@ export default function NetworkList({
 
       params.delete("page"); // Remove page from query params
 
-      router.push(`${pathname}?${params.toString()}`, {
-        scroll: false,
-      });
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
     },
     [pathname, router, searchParams]
   );
@@ -368,41 +312,7 @@ export default function NetworkList({
       {/* Network Cards */}
       <ScrollArea className="h-screen scrollbar-hide overflow-y-auto">
         <div>
-          {paginated.map((network) => (
-            <Card
-              key={network.id}
-              className=" hover:bg-[#E2EAFD] transition-colors duration-300 cursor-pointer p-2 border-b-1 border-b-[#E2EAFD]"
-              
-            >
-              <CardContent className="p-2 px-4">
-                <CardTitle className="font-semibold text-xl text-[#363698] py-2">
-                  {network.name}
-                </CardTitle>
-                <CardDescription className="pb-2 flex gap-2 items-center">
-                  <div className="text-[#F37B44] bg-[#EFF4FE] p-1 rounded-md">
-                    <MapPin className="stroke-1" />
-                  </div>
-                  {network.location.city},{" "}
-                  {countryMap[network.location.country] ||
-                    network.location.country}
-                </CardDescription>
-                {additionalData[network.id] && (
-                  <div className="flex flex-col md:flex-row justify-between items-center gap-2">
-                    <CardDescription className="pb-2 flex gap-2 items-center">
-                      <div className="text-[#F37B44] bg-[#EFF4FE] p-1 rounded-md">
-                        <BriefcaseBusiness className="stroke-1" />
-                      </div>
-                      {additionalData[network.id].company.join(", ")}
-                    </CardDescription>
-                    <Button
-                      className="bg-white text-[#F37B44] hover:bg-[#363698] hover:text-white transition-colors duration-300 rounded-full w-full h-10 flex-shrink-0 md:w-[60px] cursor-pointer shadow-md"
-                      onClick={() => handleCardClick(network.id)}
-                    ><MoveRight className="stroke-2 antialiased"/></Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
+        {paginated.map((network) => <NetworkCard key={network.id} network={network} />)}
         </div>
 
         {/* Pagination Controls */}

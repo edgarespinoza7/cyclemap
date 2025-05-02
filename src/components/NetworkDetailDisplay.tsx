@@ -62,7 +62,7 @@ export default function NetworkDetailDisplay({
       </div>
 
       <div className="px-10 overflow-y-auto scrollbar-hide">
-        <div className="pl-2 pt-2">
+        <div className="pl-2 py-2">
           <p>
             All{" "}
             <span className="border border-orange-500 rounded p-1">
