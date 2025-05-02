@@ -13,6 +13,7 @@ import type { Point } from "geojson";
 import type { NetworkMapSummary, Station } from "@/lib/types";
 import { getNetworkDetailsById } from "@/lib/api";
 import { Locate, Plus, Minus } from "lucide-react";
+import { useMapInteraction } from "@/context/MapInteractionContext";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
@@ -31,6 +32,7 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
   const params = useParams();
   const pathname = usePathname();
   const router = useRouter();
+  const { selectedStation } = useMapInteraction();
 
   // State for Stations
   const [currentStations, setCurrentStations] = useState<Station[] | null>(
@@ -394,6 +396,55 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
       stationSource.setData(convertStationsToGeoJSON(currentStations || []));
     }
   }, [currentStations]);
+
+  // Effect to handle showing popup when selectedStation changes via context
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !map.isStyleLoaded() || !selectedStation) {
+      // If no station selected, ensure popup is closed
+      if (popupRef.current) {
+        popupRef.current.remove();
+        popupRef.current = null;
+      }
+      return;
+    }
+
+    // A station IS selected via context
+    const { longitude, latitude, name, free_bikes, empty_slots } =
+      selectedStation;
+    const coordinates: [number, number] = [longitude, latitude];
+
+    // Remove existing popup before creating a new one
+    if (popupRef.current) {
+      popupRef.current.remove();
+    }
+
+    // Create popup content
+    const popMessage = `<div class="p-2 max-w-md min-w-45">
+      <p class="font-bold text-base break-all">${name}</p>
+      <div class="flex justify-between items-center text-sm mt-2">
+        <p class="text-muted-foreground">Free Bikes</p>
+        <p class="font-bold">${free_bikes ?? "N/A"}</p>
+      </div>
+      <div class="flex justify-between items-center text-sm">
+        <p class="text-muted-foreground">Empty Slots</p>
+        <p class="font-bold">${empty_slots ?? "N/A"}</p>
+      </div>
+    </div>`;
+
+    // Create and add the new popup
+    popupRef.current = new mapboxgl.Popup({
+      offset: 15,
+      closeButton: false, // Allow user to close it manually
+      closeOnClick: false, // Keep popup open even if map is clicked elsewhere
+    })
+      .setLngLat(coordinates)
+      .setHTML(popMessage)
+      .addTo(map);
+
+    // Optional: Fly to the station
+    // map.flyTo({ center: coordinates, zoom: 15 }); // Adjust zoom as needed
+  }, [selectedStation]); // Re-run when the selected station from context changes
 
   // Handles the "Near me" button
   const handleLocate = () => {

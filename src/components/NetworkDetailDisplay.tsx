@@ -7,6 +7,7 @@ import { columns } from "../app/(main)/networks/[id]/columns";
 import { countryMap } from "@/lib/countryUtils";
 import type { NetworkDetails, Station } from "@/lib/types";
 import { MoveLeft, MapPin, BriefcaseBusiness } from "lucide-react";
+import { useMapInteraction } from "@/context/MapInteractionContext"; 
 
 interface NetworkDetailDisplayProps {
   networkDetails: NetworkDetails;
@@ -18,6 +19,7 @@ export default function NetworkDetailDisplay({
   stations,
 }: NetworkDetailDisplayProps) {
   const router = useRouter();
+  const { selectStation } = useMapInteraction();
 
   return (
     <div className="container mx-auto bg-[#363698] text-white overflow-x-auto h-screen scrollbar-hide">
@@ -70,7 +72,7 @@ export default function NetworkDetailDisplay({
           </p>
         </div>
 
-        <DataTable columns={columns} data={stations}></DataTable>
+        <DataTable columns={columns} data={stations} onRowClick={(station) => selectStation(station as Station)}></DataTable>
       </div>
     </div>
   );
