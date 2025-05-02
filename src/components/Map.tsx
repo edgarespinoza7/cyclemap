@@ -244,9 +244,9 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
 
       const popMessage = `
       <div class="p-2 max-w-xs text-center">
-        <p class="font-bold text-base">${properties?.name}</p>
+        <p class="font-bold text-lg text-[#363698]">${properties?.name}</p>
         <p class="text-sm mb-2">${properties?.city}, ${properties?.country}</p>
-        <button id="view-network-button" data-network-id="${properties?.id}" class="text-sm text-blue-600 hover:underline focus:outline-none">View Details</button>
+        <button id="view-network-button" data-network-id="${properties?.id}" class="text-xs focus:outline-none cursor-pointer hover:bg-[#E2EAFD] py-1.5 px-2.5 border border-[#CAD7FB] rounded-full text-[#363698]">View Details</button>
       </div>`;
 
       const popup = createAndShowPopup(
@@ -293,8 +293,10 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
         coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
       }
 
-      const popMessage = `<div class="p-2 max-w-md min-w-45">
-      <p class="font-bold text-base break-all">${properties?.name}</p>
+      const popMessage = `<div class="p-2 max-w-md min-w-45 ">
+      <p class="font-bold text-base text-[#363698] break-all">${
+        properties?.name
+      }</p>
       <div class="flex justify-between items-center text-sm mt-2">
       <p class="text-muted-foreground">Free Bikes</p>
       <p class="font-bold">${properties?.free_bikes ?? "N/A"}</p>
@@ -477,7 +479,7 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
 
     // Create popup content
     const popMessage = `<div class="p-2 max-w-md min-w-45">
-      <p class="font-bold text-base break-all">${name}</p>
+      <p class="font-bold text-base break-all text-[#363698]">${name}</p>
       <div class="flex justify-between items-center text-sm mt-2">
         <p class="text-muted-foreground">Free Bikes</p>
         <p class="font-bold">${free_bikes ?? "N/A"}</p>
