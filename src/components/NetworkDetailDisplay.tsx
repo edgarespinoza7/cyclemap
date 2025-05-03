@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { DataTable } from "./data-table";
+import { DataTable } from "./Data-table";
 import { columns } from "../app/(main)/networks/[id]/columns";
 import { countryMap } from "@/lib/countryUtils";
 import type { NetworkDetails, Station } from "@/lib/types";

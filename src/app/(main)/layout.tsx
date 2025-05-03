@@ -1,17 +1,9 @@
 import { getBikeNetworks } from "@/lib/api";
 import Map from "@/components/Map";
 import { MapInteractionProvider } from "@/context/MapInteractionContext";
+import { Network } from "@/lib/types";
 
-type Network = {
-  id: string;
-  name: string;
-  location: {
-    latitude: number;
-    longitude: number;
-    city: string;
-    country: string;
-  };
-};
+
 
 export default async function MainLayout({
   children,
@@ -22,15 +14,17 @@ export default async function MainLayout({
 
   return (
     <MapInteractionProvider>
-      <div className="h-screen flex flex-col md:flex-row ">
+      <div className="flex h-[100dvh] flex-col md:flex-row">
         {/* Sidebar Area */}
-        <div className="w-[550px] min-h-[40vh] md:h-screen overflow-auto flex flex-col">
-          {/* Dynamic content from page.tsx or networks/[id]/page.tsx goes here */}
-          <div className="flex-grow overflow-y-auto">{children}</div>
+        <div className="order-2 md:order-1 w-full md:w-[550px] h-[60vh] md:h-screen overflow-auto border-t md:border-t-0 md:border-r border-gray-200">
+          {/* Dynamic content */}
+          <div className="flex-grow overflow-y-auto">
+            {children}
+          </div>
         </div>
 
         {/* Map Area */}
-        <div className="flex-1 w-full h-screen">
+        <div className="order-1 md:order-2 w-full h-[40vh] md:h-screen md:flex-1">
           <Map networks={networks} />
         </div>
       </div>
