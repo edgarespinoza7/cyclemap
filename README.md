@@ -1,36 +1,121 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CycleMap 🚲
+
+A modern web application for discovering and exploring bike-sharing networks worldwide. Built with Next.js 14, TypeScript, and Mapbox GL JS.
+
+## Features
+
+- **Interactive World Map**: Visualize bike-sharing networks globally using Mapbox GL JS
+- **Real-time Station Data**: Monitor bike and dock availability across stations
+- **Responsive Design**: Seamless experience across desktop and mobile devices
+- **Smart Search & Filtering**: Find networks by name or country
+- **Optimized Data Fetching**: Implemented caching strategy using SWR to handle API rate limits
+
+## Tech Stack
+
+- **Framework**: Next.js 14 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS + shadcn/ui
+- **Map**: Mapbox GL JS
+- **Data Fetching**: SWR
+- **State Management**: React Context
+- **Deployment**: Vercel
+
+## Architecture
+
+### Key Design Decisions
+
+1. **App Router & Server Components**
+   - Leveraged Next.js 14 App Router for improved routing and layouts
+   - Used Server Components where possible to reduce client-side JavaScript
+
+2. **Data Fetching Strategy**
+   - Implemented SWR for data caching and revalidation
+   - Managed API rate limits through optimized fetching patterns
+   - Created fallback mechanisms for handling API timeouts
+
+3. **Map Implementation**
+   - Custom map controls and interactions
+   - Efficient marker clustering for large datasets
+   - Synchronized sidebar and map state
+
+4. **Component Architecture**
+   - Shared UI components using shadcn/ui
+   - Context-based state management for map interactions
+   - Responsive layout with mobile-first approach
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18.17 or later
+- Mapbox API key
+- Git
+
+### Installation
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Clone the repository
+git clone https://github.com/yourusername/cyclemap-frontend.git
+
+# Install dependencies
+cd cyclemap-frontend
+npm install
+
+# Set up environment variables
+cp .env.example .env.local
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Add your Mapbox API key to `.env.local`:
+```env
+NEXT_PUBLIC_MAPBOX_TOKEN=your_mapbox_token_here
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Development
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+# Start development server
+npm run dev
+```
 
-## Learn More
+Visit `http://localhost:3000` to view the application.
 
-To learn more about Next.js, take a look at the following resources:
+## Challenges & Solutions
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### API Rate Limiting
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**Challenge**: The bike-sharing API has strict rate limits that affected data freshness.
 
-## Deploy on Vercel
+**Solution**: Implemented SWR with custom configuration:
+- Optimized revalidation intervals
+- Implemented stale-while-revalidate pattern
+- Added error boundaries for failed requests
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Map Performance
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Challenge**: Rendering large numbers of markers affected performance.
+
+**Solution**: 
+- Implemented marker clustering
+- Added viewport-based rendering
+- Optimized layer management
+
+## Project Structure
+
+```
+cyclemap-frontend/
+├── src/
+│   ├── app/             # App router pages and layouts
+│   ├── components/      # Reusable components
+│   ├── context/         # React context providers
+│   ├── lib/            # Utilities and API functions
+│   └── types/          # TypeScript definitions
+├── public/             # Static assets
+└── tailwind.config.js  # Tailwind configuration
+```
+
+
+## Acknowledgments
+
+- [CityBikes API](https://api.citybik.es/v2/) for providing bike-sharing data
+- [Mapbox](https://www.mapbox.com/) for map visualization
+- [shadcn/ui](https://ui.shadcn.com/) for UI components
