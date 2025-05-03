@@ -1,6 +1,6 @@
 import { NetworkDetails } from "./types";
 
-const API_BASE_URL = "http://api.citybik.es/v2";
+const API_BASE_URL = "https://api.citybik.es/v2";
 
 // Fetches all bike networks from the CityBikes API
 export async function getBikeNetworks() {
