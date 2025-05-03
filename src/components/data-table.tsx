@@ -69,7 +69,7 @@ export function DataTable<TData, TValue>({
   ): (number | string)[] => {
     const totalPageNumbers = siblingCount + 5;
 
-    // Case 1: If the number of pages is less than the page numbers we want to show
+    // Case 1: Number of pages is less than the page numbers we want to show
     if (totalPageNumbers >= totalPages) {
       return Array.from({ length: totalPages }, (_, i) => i + 1);
     }
@@ -83,14 +83,14 @@ export function DataTable<TData, TValue>({
     const firstPageIndex = 1;
     const lastPageIndex = totalPages;
 
-    // Case 2: No left dots to show, but right dots to be shown
+    // Case 2: No left dots to show, just right dots
     if (!shouldShowLeftDots && shouldShowRightDots) {
       const leftItemCount = 3 + 2 * siblingCount;
       const leftRange = Array.from({ length: leftItemCount }, (_, i) => i + 1);
       return [...leftRange, "...", totalPages];
     }
 
-    // Case 3: No right dots to show, but left dots to be shown
+    // Case 3: No right dots to show, jus left dots
     if (shouldShowLeftDots && !shouldShowRightDots) {
       const rightItemCount = 3 + 2 * siblingCount;
       const rightRange = Array.from(
@@ -144,18 +144,23 @@ export function DataTable<TData, TValue>({
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                   onClick={() => onRowClick?.(row.original)} // Call handler with original row data
-                  className={onRowClick ? "cursor-pointer hover:bg-muted/50" : ""}
+                  className={
+                    onRowClick ? "cursor-pointer hover:bg-muted/50" : ""
+                  }
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
-                    key={cell.id}
-                    className={
-                      // Center specific columns
-                      ["free_bikes", "empty_slots"].includes(cell.column.id) ? "text-center font-semibold" :
-                      // Limit width and truncate the 'name' column
-                      cell.column.id === 'name' || 'row.extra.address' ? "max-w-[200px] truncate text-base" : // Adjust max-w-sm as needed (e.g., max-w-xs, max-w-md, max-w-[250px])
-                      "" // Default: no extra classes
-                    }>
+                      key={cell.id}
+                      className={
+                        // Center specific columns
+                        ["free_bikes", "empty_slots"].includes(cell.column.id)
+                          ? "text-center font-semibold"
+                          : // Limit width and truncate the 'name' column
+                          cell.column.id === "name" || "row.extra.address"
+                          ? "max-w-[200px] truncate text-base"
+                          : ""
+                      }
+                    >
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
@@ -173,7 +178,7 @@ export function DataTable<TData, TValue>({
         </Table>
       </div>
       {/* Conditional Pagination Controls */}
-      {/* It only show if there are multiple pages */}
+      {/* Only shows if there are multiple pages */}
       {pageCount > 1 && (
         <div className="flex justify-center pt-4">
           <Pagination>
@@ -191,7 +196,7 @@ export function DataTable<TData, TValue>({
                 />
               </PaginationItem>
 
-              {/* Page Numbers and Ellipses */}
+              {/* Page Numbers and dots */}
               {paginationRange.map((pageNumber, index) => (
                 <PaginationItem key={index}>
                   {typeof pageNumber === "string" ? (
@@ -203,7 +208,7 @@ export function DataTable<TData, TValue>({
                       aria-current={
                         currentPage === pageNumber ? "page" : undefined
                       }
-                      className="cursor-pointer font-semibold active:text-[#33347C]" // Ensure links look clickable
+                      className="cursor-pointer font-semibold active:text-[#33347C]"
                     >
                       {pageNumber}
                     </PaginationLink>
