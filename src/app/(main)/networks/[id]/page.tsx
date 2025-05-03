@@ -3,15 +3,16 @@ import Link from "next/link";
 import NetworkDetailDisplay from "@/components/NetworkDetailDisplay";
 import { getNetworkDetailsById } from "@/lib/api";
 import type { Station } from "@/lib/types";
-import { ReactElement } from "react";
+import type { Metadata } from "next";
 
-// Define an explicit type for the props
-type NetworkDetailPageProps = {
-  params: { id: string };
-};
+// Define the props with params as a Promise
+interface Props {
+  params: Promise<{ id: string }>;
+}
 
-export default async function NetworkDetailPage({ params }: NetworkDetailPageProps): Promise<ReactElement> {
-  const { id } = params;
+// Update the page component to await params
+export default async function NetworkDetailPage({ params }: Props) {
+  const { id } = await params;
 
   if (!id) {
     return (
@@ -42,4 +43,12 @@ export default async function NetworkDetailPage({ params }: NetworkDetailPagePro
   return (
     <NetworkDetailDisplay networkDetails={networkDetails} stations={stations} />
   );
+}
+
+// Update the generateMetadata function to await params
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  return {
+    title: `Network Details - ${id}`,
+  };
 }

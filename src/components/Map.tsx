@@ -533,35 +533,37 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
   };
 
   return (
-    <div className="relative h-full w-full">
-      <div ref={mapContainer} className="absolute inset-0 h-full w-full" />
-      <div className="absolute top-8 left-8 z-10">
-        <Button
-          onClick={handleLocate}
-          className="bg-primary rounded-2xl hover:bg-primary/90 text-white shadow-xs flex items-center gap-2 px-4 py-2 cursor-pointer"
-        >
-          <span>
-            <Locate />
-          </span>
-          Near me
-        </Button>
+    
+      <div className="relative h-full w-full">
+        <div ref={mapContainer} className="absolute inset-0 h-full w-full" />
+        <div className="absolute top-8 left-8 z-10">
+          <Button
+            onClick={handleLocate}
+            className="bg-primary rounded-2xl hover:bg-primary/90 text-white shadow-xs flex items-center gap-2 px-4 py-2 cursor-pointer"
+          >
+            <span>
+              <Locate />
+            </span>
+            Near me
+          </Button>
+        </div>
+        <div className="absolute top-8 right-6 z-10 flex flex-col shadow-xl bg-white rounded-2xl">
+          <Button
+            variant="ghost"
+            onClick={handleZoomIn}
+            className="rounded-t-2xl rounded-b-none"
+          >
+            <Plus className="text-primary " />
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={handleZoomOut}
+            className="rounded-b-2xl rounded-t-none"
+          >
+            <Minus className="text-primary" />
+          </Button>
+        </div>
       </div>
-      <div className="absolute top-8 right-6 z-10 flex flex-col shadow-xl bg-white rounded-2xl">
-        <Button
-          variant="ghost"
-          onClick={handleZoomIn}
-          className="rounded-t-2xl rounded-b-none"
-        >
-          <Plus className="text-primary " />
-        </Button>
-        <Button
-          variant="ghost"
-          onClick={handleZoomOut}
-          className="rounded-b-2xl rounded-t-none"
-        >
-          <Minus className="text-primary" />
-        </Button>
-      </div>
-    </div>
+    
   );
 }

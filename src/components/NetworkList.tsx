@@ -1,7 +1,6 @@
 "use client";
 
-
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback, Suspense } from "react";
 import { Input } from "@/components/ui/input";
 
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -9,16 +8,9 @@ import { Button } from "@/components/ui/button";
 
 import { countryMap } from "@/lib/countryUtils";
 import Header from "./Header";
-import type {
-  NetworkListItem,
-  Country,
-} from "@/lib/types";
+import type { NetworkListItem, Country } from "@/lib/types";
 // Combobox and Popover imports
-import {
-  Check,
-  MapPin,
-  Search,
-} from "lucide-react";
+import { Check, MapPin, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Command,
@@ -63,7 +55,6 @@ export default function NetworkList({
 
   // Combobox Open State
   const [isComboboxOpen, setIsComboboxOpen] = useState(false);
-
 
   const availableCountries = useMemo(() => {
     return Array.from(new Set(networks.map((n) => n.location.country)))
@@ -148,7 +139,7 @@ export default function NetworkList({
       return [...leftRange, "...", totalPages];
     }
 
-    // Case 3: No right dots to show, just left dots 
+    // Case 3: No right dots to show, just left dots
     if (shouldShowLeftDots && !shouldShowRightDots) {
       const rightItemCount = 3 + 2 * siblingCount;
       const rightRange = Array.from(
@@ -167,7 +158,6 @@ export default function NetworkList({
       return [firstPageIndex, "...", ...middleRange, "...", lastPageIndex];
     }
 
-   
     return Array.from({ length: totalPages }, (_, i) => i + 1);
   };
 
@@ -214,163 +204,171 @@ export default function NetworkList({
   }, [search, countryFilter]);
 
   return (
-    <div className="p-10 flex flex-col h-screen overflow-hidden">
-      {/* Sidebar Header */}
-      <Header />
-      <div className="flex py-4 flex-col 2xl:flex-row gap-2">
-        {/* Wrapper for Input and Icon */}
-        <div className="relative flex-grow">
-          {" "}
-          {/* Use flex-grow to take available space */}
-          <Search
-            className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-primary"
-            aria-hidden="true"
-          />
-          <Input
-            placeholder="Search network"
-            value={search}
-            onChange={handleSearchChange}
-            className="border-accent !bg-white border-1 rounded-full h-12 pl-12 text-primary"
-          />
-        </div>
-        <Popover open={isComboboxOpen} onOpenChange={setIsComboboxOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              role="combobox"
-              aria-expanded={isComboboxOpen}
-              className="bg-white hover:bg-accent rounded-full h-12 w-full sm:w-[114px] justify-start flex-shrink-0 text-primary border-accent border-1 "
-              onClick={() => setIsComboboxOpen((prev) => !prev)} // Toggle combobox open state
-            >
-              <MapPin className="left-4 size-4 shrink-0 text-primary" />
-              {countryFilter
-                ? countryMap[countryFilter] || countryFilter // Display selected country name
-                : "Country"}{" "}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-[--radix-popover-trigger-width] max-h-[--radix-popover-content-available-height] p-0">
-            <Command>
-              <CommandInput placeholder="Search country..." />
-              {/* Wrap CommandList around group/empty/items for scrolling */}
-              <CommandList>
-                <CommandEmpty>No country found.</CommandEmpty>
-                <CommandGroup>
-                  {/* Option to clear filter */}
-                  <CommandItem
-                    key="all-countries"
-                    value="All Countries" // Use empty string for "All"
-                    onSelect={() => {
-                      handleSelectCountry(""); // Call handler with empty string
-                    }}
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        countryFilter === "" ? "opacity-100" : "opacity-0" // Show check if "" is selected
-                      )}
-                    />
-                    All Countries
-                  </CommandItem>
-                  {/* Map available countries */}
-                  {availableCountries.map((country) => (
+    <Suspense>
+      <div className="p-10 flex flex-col h-screen overflow-hidden">
+        {/* Sidebar Header */}
+        <Header />
+        <div className="flex py-4 flex-col 2xl:flex-row gap-2">
+          {/* Wrapper for Input and Icon */}
+          <div className="relative flex-grow">
+            {" "}
+            {/* Use flex-grow to take available space */}
+            <Search
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-primary"
+              aria-hidden="true"
+            />
+            <Input
+              placeholder="Search network"
+              value={search}
+              onChange={handleSearchChange}
+              className="border-accent !bg-white border-1 rounded-full h-12 pl-12 text-primary"
+            />
+          </div>
+          <Popover open={isComboboxOpen} onOpenChange={setIsComboboxOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                role="combobox"
+                aria-expanded={isComboboxOpen}
+                className="bg-white hover:bg-accent rounded-full h-12 w-full sm:w-[114px] justify-start flex-shrink-0 text-primary border-accent border-1 "
+                onClick={() => setIsComboboxOpen((prev) => !prev)} // Toggle combobox open state
+              >
+                <MapPin className="left-4 size-4 shrink-0 text-primary" />
+                {countryFilter
+                  ? countryMap[countryFilter] || countryFilter // Display selected country name
+                  : "Country"}{" "}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[--radix-popover-trigger-width] max-h-[--radix-popover-content-available-height] p-0">
+              <Command>
+                <CommandInput placeholder="Search country..." />
+                {/* Wrap CommandList around group/empty/items for scrolling */}
+                <CommandList>
+                  <CommandEmpty>No country found.</CommandEmpty>
+                  <CommandGroup>
+                    {/* Option to clear filter */}
                     <CommandItem
-                      key={country.code}
-                      value={country.name} // Use code as the value for selection logic
-                      className="hover:bg-accent cursor-pointer"
-                      onSelect={(currentValue) => {
-                        const selectedCountry = availableCountries.find(
-                          (c) => c.name === currentValue
-                        );
-
-                        const codeToSet = selectedCountry
-                          ? selectedCountry.code
-                          : "";
-
-                        const shouldClear = countryFilter === codeToSet;
-
-                        handleSelectCountry(shouldClear ? "" : codeToSet);
+                      key="all-countries"
+                      value="All Countries" // Use empty string for "All"
+                      onSelect={() => {
+                        handleSelectCountry(""); // Call handler with empty string
                       }}
                     >
                       <Check
                         className={cn(
                           "mr-2 h-4 w-4",
-                          countryFilter === country.code
-                            ? "opacity-100"
-                            : "opacity-0" // Show check if this country is selected
+                          countryFilter === "" ? "opacity-100" : "opacity-0" // Show check if "" is selected
                         )}
                       />
-                      {country.name} {/* Display the country name */}
+                      All Countries
                     </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
-      </div>
-      {/* Network Cards */}
-      <ScrollArea className="h-screen scrollbar-hide overflow-y-auto">
-        <div>
-        {paginated.map((network) => <NetworkCard key={network.id} network={network} />)}
-        </div>
+                    {/* Map available countries */}
+                    {availableCountries.map((country) => (
+                      <CommandItem
+                        key={country.code}
+                        value={country.name} // Use code as the value for selection logic
+                        className="hover:bg-accent cursor-pointer"
+                        onSelect={(currentValue) => {
+                          const selectedCountry = availableCountries.find(
+                            (c) => c.name === currentValue
+                          );
 
-        {/* Pagination Controls */}
-        {/* Only show if there are multiple pages */}
-        {totalPages > 1 && (
-          <div className="flex justify-center pt-2 mt-4">
-            {" "}
-            {/* Center the pagination */}
-            <Pagination>
-              <PaginationContent>
-                {/* Previous Button */}
-                <PaginationItem>
-                  <PaginationPrevious
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    // Add aria-disabled for accessibility, Shadcn might style based on this
-                    aria-disabled={page === 1}
-                    // Add Tailwind class for visual disabling
-                    className={
-                      page === 1
-                        ? "pointer-events-none opacity-50"
-                        : "cursor-pointer"
-                    }
-                  />
-                </PaginationItem>
+                          const codeToSet = selectedCountry
+                            ? selectedCountry.code
+                            : "";
 
-                {/* Page Numbers and Ellipses */}
-                {paginationRange.map((pageNumber, index) => (
-                  <PaginationItem key={index}>
-                    {typeof pageNumber === "string" ? (
-                      <PaginationEllipsis />
-                    ) : (
-                      <PaginationLink
-                        onClick={() => setPage(pageNumber)}
-                        isActive={page === pageNumber}
-                        aria-current={page === pageNumber ? "page" : undefined}
-                        className="cursor-pointer text-primary hover:bg-accent transition-colors duration-300" // Ensure links look clickable
+                          const shouldClear = countryFilter === codeToSet;
+
+                          handleSelectCountry(shouldClear ? "" : codeToSet);
+                        }}
                       >
-                        {pageNumber}
-                      </PaginationLink>
-                    )}
-                  </PaginationItem>
-                ))}
-
-                {/* Next Button */}
-                <PaginationItem>
-                  <PaginationNext
-                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                    aria-disabled={page === totalPages}
-                    className={
-                      page === totalPages
-                        ? "pointer-events-none opacity-50"
-                        : "cursor-pointer"
-                    }
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            countryFilter === country.code
+                              ? "opacity-100"
+                              : "opacity-0" // Show check if this country is selected
+                          )}
+                        />
+                        {country.name} {/* Display the country name */}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        </div>
+        {/* Network Cards */}
+        <ScrollArea className="h-screen scrollbar-hide overflow-y-auto">
+          <div>
+            {paginated.map((network) => (
+              <NetworkCard key={network.id} network={network} />
+            ))}
           </div>
-        )}
-      </ScrollArea>
-    </div>
+
+          {/* Pagination Controls */}
+          {/* Only show if there are multiple pages */}
+          {totalPages > 1 && (
+            <div className="flex justify-center pt-2 mt-4">
+              {" "}
+              {/* Center the pagination */}
+              <Pagination>
+                <PaginationContent>
+                  {/* Previous Button */}
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      // Add aria-disabled for accessibility, Shadcn might style based on this
+                      aria-disabled={page === 1}
+                      // Add Tailwind class for visual disabling
+                      className={
+                        page === 1
+                          ? "pointer-events-none opacity-50"
+                          : "cursor-pointer"
+                      }
+                    />
+                  </PaginationItem>
+
+                  {/* Page Numbers and Ellipses */}
+                  {paginationRange.map((pageNumber, index) => (
+                    <PaginationItem key={index}>
+                      {typeof pageNumber === "string" ? (
+                        <PaginationEllipsis />
+                      ) : (
+                        <PaginationLink
+                          onClick={() => setPage(pageNumber)}
+                          isActive={page === pageNumber}
+                          aria-current={
+                            page === pageNumber ? "page" : undefined
+                          }
+                          className="cursor-pointer text-primary hover:bg-accent transition-colors duration-300" // Ensure links look clickable
+                        >
+                          {pageNumber}
+                        </PaginationLink>
+                      )}
+                    </PaginationItem>
+                  ))}
+
+                  {/* Next Button */}
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() =>
+                        setPage((p) => Math.min(totalPages, p + 1))
+                      }
+                      aria-disabled={page === totalPages}
+                      className={
+                        page === totalPages
+                          ? "pointer-events-none opacity-50"
+                          : "cursor-pointer"
+                      }
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
+        </ScrollArea>
+      </div>
+    </Suspense>
   );
 }
