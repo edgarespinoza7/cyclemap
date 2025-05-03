@@ -1,3 +1,6 @@
+![Banner](./public/Banner%20Desktop.png)
+![Banner](./public/Banner%20Mobile.png)
+
 # CycleMap
 
 A modern web application for discovering and exploring bike-sharing networks worldwide. Built with Next.js 14, TypeScript, and Mapbox GL JS.
