@@ -10,7 +10,7 @@ type PageProps = {
 };
 
 export default async function NetworkDetailPage({ params }: PageProps) {
-  const { id } = await params;
+  const { id } = params;
 
   if (!id) {
     return (
