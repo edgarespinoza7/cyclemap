@@ -40,7 +40,7 @@ export default function NetworkCard({ network }: NetworkCardProps) {
     error,
     isLoading,
   } = useSWR(
-    `http://api.citybik.es/v2/networks/${network.id}`,
+    `https://api.citybik.es/v2/networks/${network.id}`,
     fetcher, // Use the fetcher function
     {
       revalidateOnFocus: false, // Don't refetch automatically on window focus
