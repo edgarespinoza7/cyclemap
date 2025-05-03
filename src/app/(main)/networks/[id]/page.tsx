@@ -6,6 +6,7 @@ import type { Station } from "@/lib/types";
 
 type PageProps = {
   params: { id: string };
+  searchParams?: { [key: string]: string | string[] | undefined };
 };
 
 export default async function NetworkDetailPage({ params }: PageProps) {
