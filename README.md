@@ -1,4 +1,4 @@
-# CycleMap 🚲
+# CycleMap
 
 A modern web application for discovering and exploring bike-sharing networks worldwide. Built with Next.js 14, TypeScript, and Mapbox GL JS.
 
@@ -25,15 +25,18 @@ A modern web application for discovering and exploring bike-sharing networks wor
 ### Key Design Decisions
 
 1. **App Router & Server Components**
+
    - Leveraged Next.js 14 App Router for improved routing and layouts
    - Used Server Components where possible to reduce client-side JavaScript
 
 2. **Data Fetching Strategy**
+
    - Implemented SWR for data caching and revalidation
    - Managed API rate limits through optimized fetching patterns
    - Created fallback mechanisms for handling API timeouts
 
 3. **Map Implementation**
+
    - Custom map controls and interactions
    - Efficient marker clustering for large datasets
    - Synchronized sidebar and map state
@@ -66,6 +69,7 @@ cp .env.example .env.local
 ```
 
 Add your Mapbox API key to `.env.local`:
+
 ```env
 NEXT_PUBLIC_MAPBOX_TOKEN=your_mapbox_token_here
 ```
@@ -86,6 +90,7 @@ Visit `http://localhost:3000` to view the application.
 **Challenge**: The bike-sharing API has strict rate limits that affected data freshness.
 
 **Solution**: Implemented SWR with custom configuration:
+
 - Optimized revalidation intervals
 - Implemented stale-while-revalidate pattern
 - Added error boundaries for failed requests
@@ -94,7 +99,8 @@ Visit `http://localhost:3000` to view the application.
 
 **Challenge**: Rendering large numbers of markers affected performance.
 
-**Solution**: 
+**Solution**:
+
 - Implemented marker clustering
 - Added viewport-based rendering
 - Optimized layer management
@@ -112,7 +118,6 @@ cyclemap-frontend/
 ├── public/             # Static assets
 └── tailwind.config.js  # Tailwind configuration
 ```
-
 
 ## Acknowledgments
 
