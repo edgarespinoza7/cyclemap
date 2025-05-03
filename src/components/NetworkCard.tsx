@@ -13,7 +13,7 @@ import { countryMap } from "@/lib/countryUtils";
 import type { NetworkListItem } from "@/lib/types";
 import { MapPin, BriefcaseBusiness, MoveRight } from "lucide-react";
 
-// --- SWR Fetcher (Can be imported from a shared util file if preferred) ---
+// SWR Fetcher function
 const fetcher = async (url: string) => {
   const res = await fetch(url);
   if (!res.ok) {
@@ -33,20 +33,21 @@ interface NetworkCardProps {
 export default function NetworkCard({ network }: NetworkCardProps) {
   const router = useRouter();
 
-    // ✅ Correct: useSWR called at the top level of the component
-    const {
-      data: networkDetails,
-      error,
-      isLoading,
-    } = useSWR(
-      `http://api.citybik.es/v2/networks/${network.id}`, // SWR Key is the URL
-      fetcher, // Use the fetcher function
-      {
-        revalidateOnFocus: false, // Don't refetch automatically on window focus
-      }
-    );
+  // Use SWR to fetch network details
+  // The key is the URL, and the fetcher is the function to call
+  const {
+    data: networkDetails,
+    error,
+    isLoading,
+  } = useSWR(
+    `http://api.citybik.es/v2/networks/${network.id}`,
+    fetcher, // Use the fetcher function
+    {
+      revalidateOnFocus: false, // Don't refetch automatically on window focus
+    }
+  );
 
-    // Extract company and stations count safely from fetched data
+  // Extract company and stations count safely from fetched data
   const company = networkDetails?.network?.company ?? [];
   const companyArray = Array.isArray(company) ? company : [company]; // Ensure it's an array
   // const stationsCount = networkDetails?.network?.stations?.length ?? 0; // If needed later
@@ -57,7 +58,7 @@ export default function NetworkCard({ network }: NetworkCardProps) {
 
   return (
     <Card
-      key={network.id} // Key is still important for list rendering
+      key={network.id} // Use network.id as the key for the card
       className=" hover:bg-accent transition-colors duration-300 cursor-pointer p-2 border-b-1 border-b-accent"
     >
       <CardContent className="p-2 px-4">
@@ -73,7 +74,11 @@ export default function NetworkCard({ network }: NetworkCardProps) {
         </CardDescription>
         <div className="flex flex-col md:flex-row justify-between items-center gap-2 min-h-[40px]">
           {isLoading && <CardDescription>Loading details...</CardDescription>}
-          {error && <CardDescription className="text-red-500">Failed to load</CardDescription>}
+          {error && (
+            <CardDescription className="text-red-500">
+              Failed to load
+            </CardDescription>
+          )}
           {!isLoading && !error && networkDetails && (
             <>
               <CardDescription className="pb-2 flex gap-2 items-center flex-grow">

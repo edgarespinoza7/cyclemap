@@ -141,14 +141,14 @@ export default function NetworkList({
     const firstPageIndex = 1;
     const lastPageIndex = totalPages;
 
-    // Case 2: No left dots to show, but right dots to be shown
+    // Case 2: No left dots to show, jus right dots
     if (!shouldShowLeftDots && shouldShowRightDots) {
       const leftItemCount = 3 + 2 * siblingCount;
       const leftRange = Array.from({ length: leftItemCount }, (_, i) => i + 1);
       return [...leftRange, "...", totalPages];
     }
 
-    // Case 3: No right dots to show, but left dots to be shown
+    // Case 3: No right dots to show, just left dots 
     if (shouldShowLeftDots && !shouldShowRightDots) {
       const rightItemCount = 3 + 2 * siblingCount;
       const rightRange = Array.from(
@@ -167,7 +167,7 @@ export default function NetworkList({
       return [firstPageIndex, "...", ...middleRange, "...", lastPageIndex];
     }
 
-    // Default case (should not happen with above logic, but for safety)
+   
     return Array.from({ length: totalPages }, (_, i) => i + 1);
   };
 
@@ -346,7 +346,7 @@ export default function NetworkList({
                         onClick={() => setPage(pageNumber)}
                         isActive={page === pageNumber}
                         aria-current={page === pageNumber ? "page" : undefined}
-                        className="cursor-pointer text-[#33347C] hover:bg-accent transition-colors duration-300" // Ensure links look clickable
+                        className="cursor-pointer text-primary hover:bg-accent transition-colors duration-300" // Ensure links look clickable
                       >
                         {pageNumber}
                       </PaginationLink>

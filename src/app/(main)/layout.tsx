@@ -16,7 +16,7 @@ export default async function MainLayout({
     <MapInteractionProvider>
       <div className="flex h-[100dvh] flex-col md:flex-row">
         {/* Sidebar Area */}
-        <div className="order-2 md:order-1 w-full md:w-[550px] h-[60vh] md:h-screen overflow-auto border-t md:border-t-0 md:border-r border-gray-200">
+        <div className="order-2 md:order-1 w-full md:w-[550px] h-[60vh] md:h-screen overflow-auto border-t md:border-t-0">
           {/* Dynamic content */}
           <div className="flex-grow overflow-y-auto">
             {children}

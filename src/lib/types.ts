@@ -11,7 +11,7 @@ export interface Coordinates {
   longitude: number;
 }
 
-// --- Station ---
+// Station
 // Represents a single bike station, often part of NetworkDetails
 export interface Station {
   id: string;
@@ -39,8 +39,7 @@ export interface Station {
   };
 }
 
-// --- Network ---
-
+// Network
 export interface Network {
   id: string;
   name: string;
@@ -91,4 +90,3 @@ export interface Country {
 
 // Type for the country code -> name map
 export type CountryCodeMap = Record<string, string>;
-

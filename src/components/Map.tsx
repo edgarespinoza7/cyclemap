@@ -35,16 +35,9 @@ const NETWORK_HIGHLIGHT_LAYER_ID = "network-points-highlight-layer";
 const STATION_SOURCE_ID = "station-locations";
 const STATION_LAYER_ID = "station-points-layer";
 
-// --- Helper Functions ---
+// Helper Functions
 
-/**
- * Creates and displays a Mapbox GL Popup.
- * Removes any existing popup managed by the popupRef.
-Unchanged lines
- * @param htmlContent The HTML content for the popup.
- * @param popupRef Ref to store the popup instance.
- */
-
+/// Creates and shows a popup on the map
 const createAndShowPopup = (
   map: mapboxgl.Map,
   coordinates: [number, number],
@@ -65,15 +58,13 @@ const createAndShowPopup = (
   return popupRef.current; // Return the new popup instance
 };
 
-/**
- * Checks if the map needs to fly to a new location/zoom.
- * Avoids unnecessary animations if the map is already close to the target.
- */
+// Checks if the map is already close to the target coordinates and zoom level
+
 const shouldFlyTo = (
   map: mapboxgl.Map,
   targetCoords: [number, number],
   targetZoom: number,
-  tolerance = 0.001 // How close is considered "close enough"
+  tolerance = 0.001 // Tolerance for lat/lng difference
 ): boolean => {
   const currentCenter = map.getCenter();
   const currentZoom = map.getZoom();
@@ -112,8 +103,8 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
     }
   };
 
-  // --- Map Setup Functions ---
-  /** Sets up the sources and layers for networks and stations */
+  // Map Setup Functions
+  // Sets up the sources and layers for networks and stations
   const setupMapLayers = (map: mapboxgl.Map, initialNetworkId?: string) => {
     // 1. Add Source and Layers for Networks
     const networkGeojsonData = convertNetworksToGeoJSON(networks);
@@ -135,7 +126,6 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
           "circle-stroke-width": 1,
           "circle-stroke-color": "rgb(249, 115, 22)",
           "circle-opacity": [
-            // Use feature-state for hover effect
             "case",
             ["boolean", ["feature-state", "hover"], false],
             1, // Opacity when hovered
@@ -185,11 +175,11 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
     }
   };
 
-  /** Sets up map event listeners (hover, click) */
+  // Sets up map event listeners (hover, click)
   const setupMapEventListeners = (map: mapboxgl.Map) => {
     let hoveredNetworkId: string | number | null = null;
 
-    // --- Network Hover Listeners ---
+    //  Network Hover Listeners
     map.on("mouseenter", NETWORK_LAYER_ID, (e) => {
       // ... (rest of mouseenter logic remains the same)
       if (e.features && e.features.length > 0) {
@@ -275,7 +265,7 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
       }
     });
 
-    // --- Station Click Listener ---
+    // Station Click Listener
     map.on("click", STATION_LAYER_ID, (e) => {
       // ... (rest of station click logic remains the same, but use createAndShowPopup)
       if (!e.features || e.features.length === 0) return;
@@ -303,9 +293,7 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
       </div>
       <div class="flex justify-between items-center text-sm">
       <p class="text-muted-foreground">Empty Slots</p>
-      <p class="font-bold text-primary">${
-        properties?.empty_slots ?? "N/A"
-      }</p>
+      <p class="font-bold text-primary">${properties?.empty_slots ?? "N/A"}</p>
       </div>
       </div>`;
 
@@ -430,8 +418,6 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
           `Network with ID ${networkId} not found in provided list.`
         );
         setCurrentStations(null); // Clear station state
-        // Optionally fly home if network not found
-        // if (shouldFlyTo(map, DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM)) { ... }
       }
     } else {
       setCurrentStations(null); // Clear station state as we are not viewing a specific network
@@ -503,9 +489,6 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
 
     // Use the helper function to create/show the popup
     createAndShowPopup(map, coordinates, popMessage, popupRef);
-
-    // Optional: Fly to the station if desired when selected from the list
-    // map.flyTo({ center: coordinates, zoom: 15 }); // Adjust zoom as needed
   }, [selectedStation]); // Re-run when the selected station from context changes
 
   // Handles the "Near me" button
@@ -555,7 +538,7 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
       <div className="absolute top-8 left-8 z-10">
         <Button
           onClick={handleLocate}
-          className="bg-primary rounded-2xl hover:bg-[#5050DB]"
+          className="bg-primary rounded-2xl hover:bg-primary/90 text-white shadow-xs flex items-center gap-2 px-4 py-2 cursor-pointer"
         >
           <span>
             <Locate />
