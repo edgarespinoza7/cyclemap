@@ -5,6 +5,9 @@
 
 A modern web application for discovering and exploring bike-sharing networks worldwide. Built with Next.js 14, TypeScript, and Mapbox GL JS.
 
+Visit `https://cyclemap-gamma.vercel.app/` to view the deployed application.
+
+
 ## Features
 
 - **Interactive World Map**: Visualize bike-sharing networks globally using Mapbox GL JS
@@ -84,7 +87,7 @@ NEXT_PUBLIC_MAPBOX_TOKEN=your_mapbox_token_here
 npm run dev
 ```
 
-Visit `http://localhost:3000` to view the application.
+Visit `https://cyclemap-gamma.vercel.app/` to view the application.
 
 ## Challenges & Solutions
 
