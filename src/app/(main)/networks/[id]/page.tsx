@@ -1,19 +1,14 @@
-
-
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import NetworkDetailDisplay from "@/components/NetworkDetailDisplay";
 import { getNetworkDetailsById } from "@/lib/api";
 import type { Station } from "@/lib/types";
 
-
-
-
-export default async function NetworkDetailPage({
-  params,
-}: {
+type PageProps = {
   params: { id: string };
-}) {
+};
+
+export default async function NetworkDetailPage({ params }: PageProps) {
   const { id } = await params;
 
   if (!id) {
@@ -43,9 +38,6 @@ export default async function NetworkDetailPage({
   const stations: Station[] = networkDetails.stations || [];
 
   return (
-    <NetworkDetailDisplay
-      networkDetails={networkDetails}
-      stations={stations}
-    />
+    <NetworkDetailDisplay networkDetails={networkDetails} stations={stations} />
   );
 }
