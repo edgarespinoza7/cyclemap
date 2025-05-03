@@ -3,14 +3,11 @@ import Link from "next/link";
 import NetworkDetailDisplay from "@/components/NetworkDetailDisplay";
 import { getNetworkDetailsById } from "@/lib/api";
 import type { Station } from "@/lib/types";
+import { ReactElement } from "react";
 
-type PageProps = {
-  params: { id: string };
-  searchParams?: { [key: string]: string | string[] | undefined };
-};
-
-export default async function NetworkDetailPage({ params }: PageProps) {
-  const { id } = params;
+export default async function NetworkDetailPage({ params }: { params: { id: string } }): Promise<ReactElement> {
+  
+  const { id } =  params;
 
   if (!id) {
     return (
