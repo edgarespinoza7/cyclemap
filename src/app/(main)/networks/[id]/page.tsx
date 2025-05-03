@@ -5,9 +5,13 @@ import { getNetworkDetailsById } from "@/lib/api";
 import type { Station } from "@/lib/types";
 import { ReactElement } from "react";
 
-export default async function NetworkDetailPage({ params }: { params: { id: string } }): Promise<ReactElement> {
-  
-  const { id } =  params;
+// Define an explicit type for the props
+type NetworkDetailPageProps = {
+  params: { id: string };
+};
+
+export default async function NetworkDetailPage({ params }: NetworkDetailPageProps): Promise<ReactElement> {
+  const { id } = params;
 
   if (!id) {
     return (
