@@ -22,13 +22,13 @@ export default function NetworkDetailDisplay({
   const { selectStation } = useMapInteraction();
 
   return (
-    <div className="container mx-auto bg-[#363698] text-white overflow-x-auto h-screen scrollbar-hide">
+    <div className="container mx-auto bg-primary text-white overflow-x-auto h-screen scrollbar-hide">
       <div className="relative bg-[url('/network-detail-bgimage.jpg')] bg-cover bg-center bg-no-repeat pl-10 py-8 pr-6 h-[252px]">
         <div>
-          <div className="absolute inset-0 bg-gradient-to-t from-[#363698] to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-primary to-transparent"></div>
           <div className="relative z-10">
             <Button
-              className="bg-white text-[#F37B44] hover:bg-[#F37B44] hover:text-white cursor-pointer rounded-full p-5"
+              className="bg-white text-secondary hover:bg-secondary hover:text-white cursor-pointer rounded-full p-5"
               onClick={() => router.back()}
             >
               <MoveLeft className="w-24 h-24 stroke-2" />

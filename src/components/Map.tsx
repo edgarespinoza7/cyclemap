@@ -244,9 +244,9 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
 
       const popMessage = `
       <div class="p-2 max-w-xs text-center">
-        <p class="font-bold text-lg text-[#363698]">${properties?.name}</p>
+        <p class="font-bold text-lg text-primary">${properties?.name}</p>
         <p class="text-sm text-muted-foreground   mb-2">${properties?.city}, ${properties?.country}</p>
-        <button id="view-network-button" data-network-id="${properties?.id}" class="mt-2 text-xs focus:outline-none cursor-pointer hover:bg-[#E2EAFD] transition-colors duration-150 ease-in-out py-1.5 px-4 border border-[#CAD7FB] rounded-full text-[#363698]">View Details</button>
+        <button id="view-network-button" data-network-id="${properties?.id}" class="mt-2 text-xs focus:outline-none cursor-pointer hover:bg-accent transition-colors duration-150 ease-in-out py-1.5 px-4 border border-[#CAD7FB] rounded-full text-primary">View Details</button>
       </div>`;
 
       const popup = createAndShowPopup(
@@ -294,16 +294,16 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
       }
 
       const popMessage = `<div class="p-2 max-w-md min-w-45 ">
-      <p class="font-bold text-base text-[#363698] break-all">${
+      <p class="font-bold text-base text-primary break-all">${
         properties?.name
       }</p>
       <div class="flex justify-between items-center text-sm mt-2">
       <p class="text-muted-foreground">Free Bikes</p>
-      <p class="font-bold text-[#363698]">${properties?.free_bikes ?? "N/A"}</p>
+      <p class="font-bold text-primary">${properties?.free_bikes ?? "N/A"}</p>
       </div>
       <div class="flex justify-between items-center text-sm">
       <p class="text-muted-foreground">Empty Slots</p>
-      <p class="font-bold text-[#363698]">${
+      <p class="font-bold text-primary">${
         properties?.empty_slots ?? "N/A"
       }</p>
       </div>
@@ -490,7 +490,7 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
 
     // Create popup content
     const popMessage = `<div class="p-2 max-w-md min-w-45">
-      <p class="font-bold text-base break-all text-[#363698]">${name}</p>
+      <p class="font-bold text-base break-all text-primary">${name}</p>
       <div class="flex justify-between items-center text-sm mt-2">
         <p class="text-muted-foreground">Free Bikes</p>
         <p class="font-bold">${free_bikes ?? "N/A"}</p>
@@ -555,7 +555,7 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
       <div className="absolute top-8 left-8 z-10">
         <Button
           onClick={handleLocate}
-          className="bg-[#363698] rounded-2xl hover:bg-[#5050DB]"
+          className="bg-primary rounded-2xl hover:bg-[#5050DB]"
         >
           <span>
             <Locate />
@@ -569,14 +569,14 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
           onClick={handleZoomIn}
           className="rounded-t-2xl rounded-b-none"
         >
-          <Plus className="text-[#363698] " />
+          <Plus className="text-primary " />
         </Button>
         <Button
           variant="ghost"
           onClick={handleZoomOut}
           className="rounded-b-2xl rounded-t-none"
         >
-          <Minus className="text-[#363698]" />
+          <Minus className="text-primary" />
         </Button>
       </div>
     </div>

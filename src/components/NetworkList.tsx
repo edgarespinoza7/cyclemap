@@ -223,14 +223,14 @@ export default function NetworkList({
           {" "}
           {/* Use flex-grow to take available space */}
           <Search
-            className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#363698]"
+            className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-primary"
             aria-hidden="true"
           />
           <Input
             placeholder="Search network"
             value={search}
             onChange={handleSearchChange}
-            className="border-[#E2EAFD] !bg-white border-1 rounded-full h-12 pl-12 text-[#363698]"
+            className="border-accent !bg-white border-1 rounded-full h-12 pl-12 text-primary"
           />
         </div>
         <Popover open={isComboboxOpen} onOpenChange={setIsComboboxOpen}>
@@ -238,10 +238,10 @@ export default function NetworkList({
             <Button
               role="combobox"
               aria-expanded={isComboboxOpen}
-              className="bg-white hover:bg-[#E2EAFD] rounded-full h-12 w-full sm:w-[114px] justify-start flex-shrink-0 text-[#363698] border-[#E2EAFD] border-1 "
+              className="bg-white hover:bg-accent rounded-full h-12 w-full sm:w-[114px] justify-start flex-shrink-0 text-primary border-accent border-1 "
               onClick={() => setIsComboboxOpen((prev) => !prev)} // Toggle combobox open state
             >
-              <MapPin className="left-4 size-4 shrink-0 text-[#363698]" />
+              <MapPin className="left-4 size-4 shrink-0 text-primary" />
               {countryFilter
                 ? countryMap[countryFilter] || countryFilter // Display selected country name
                 : "Country"}{" "}
@@ -275,7 +275,7 @@ export default function NetworkList({
                     <CommandItem
                       key={country.code}
                       value={country.name} // Use code as the value for selection logic
-                      className="hover:bg-[#E2EAFD] cursor-pointer"
+                      className="hover:bg-accent cursor-pointer"
                       onSelect={(currentValue) => {
                         const selectedCountry = availableCountries.find(
                           (c) => c.name === currentValue
@@ -346,7 +346,7 @@ export default function NetworkList({
                         onClick={() => setPage(pageNumber)}
                         isActive={page === pageNumber}
                         aria-current={page === pageNumber ? "page" : undefined}
-                        className="cursor-pointer text-[#33347C] hover:bg-[#E2EAFD]" // Ensure links look clickable
+                        className="cursor-pointer text-[#33347C] hover:bg-accent transition-colors duration-300" // Ensure links look clickable
                       >
                         {pageNumber}
                       </PaginationLink>

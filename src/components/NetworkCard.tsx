@@ -58,14 +58,14 @@ export default function NetworkCard({ network }: NetworkCardProps) {
   return (
     <Card
       key={network.id} // Key is still important for list rendering
-      className=" hover:bg-[#E2EAFD] transition-colors duration-300 cursor-pointer p-2 border-b-1 border-b-[#E2EAFD]"
+      className=" hover:bg-accent transition-colors duration-300 cursor-pointer p-2 border-b-1 border-b-accent"
     >
       <CardContent className="p-2 px-4">
-        <CardTitle className="font-semibold text-xl text-[#363698] py-2">
+        <CardTitle className="font-semibold text-xl text-primary py-2">
           {network.name}
         </CardTitle>
         <CardDescription className="pb-2 flex gap-2 items-center">
-          <div className="text-[#F37B44] bg-[#EFF4FE] p-1 rounded-md">
+          <div className="text-secondary bg-[#EFF4FE] p-1 rounded-md">
             <MapPin className="stroke-1" />
           </div>
           {network.location.city},{" "}
@@ -77,13 +77,13 @@ export default function NetworkCard({ network }: NetworkCardProps) {
           {!isLoading && !error && networkDetails && (
             <>
               <CardDescription className="pb-2 flex gap-2 items-center flex-grow">
-                <div className="text-[#F37B44] bg-[#EFF4FE] p-1 rounded-md">
+                <div className="text-secondary bg-[#EFF4FE] p-1 rounded-md">
                   <BriefcaseBusiness className="stroke-1" />
                 </div>
                 {companyArray.join(", ") || "N/A"}
               </CardDescription>
               <Button
-                className="bg-white text-[#F37B44] hover:bg-[#363698] hover:text-white transition-colors duration-300 rounded-full w-10 h-10 flex-shrink-0 md:w-[60px] cursor-pointer shadow-md"
+                className="bg-white text-secondary hover:bg-primary hover:text-white transition-colors duration-300 rounded-full w-10 h-10 flex-shrink-0 md:w-[60px] cursor-pointer shadow-md"
                 onClick={() => handleCardClick(network.id)}
               >
                 <MoveRight className="stroke-2 antialiased" />

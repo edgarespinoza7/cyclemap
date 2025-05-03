@@ -57,7 +57,7 @@ function PaginationLink({
         buttonVariants({
           variant: isActive ? "default" : "ghost",
           className: isActive
-            ? "bg-[#E2EAFD] text-[#33347C] border-[#CAD7FB] border-2 hover:bg-[#CAD7FB]"
+            ? "bg-accent text-[#33347C] border-[#CAD7FB] border-2 hover:bg-[#CAD7FB]"
             : undefined,
           size,
         }),
