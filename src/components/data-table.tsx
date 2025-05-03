@@ -147,7 +147,15 @@ export function DataTable<TData, TValue>({
                   className={onRowClick ? "cursor-pointer hover:bg-muted/50" : ""}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell
+                    key={cell.id}
+                    className={
+                      // Center specific columns
+                      ["free_bikes", "empty_slots"].includes(cell.column.id) ? "text-center font-semibold" :
+                      // Limit width and truncate the 'name' column
+                      cell.column.id === 'name' || 'row.extra.address' ? "max-w-[200px] truncate text-base" : // Adjust max-w-sm as needed (e.g., max-w-xs, max-w-md, max-w-[250px])
+                      "" // Default: no extra classes
+                    }>
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()

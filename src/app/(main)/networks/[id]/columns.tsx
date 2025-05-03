@@ -4,7 +4,6 @@ import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Station } from "@/lib/types";
 
-
 // Reusable Header component/function for sorting
 const SortableHeader = <TData, TValue>({
   column,
@@ -25,11 +24,9 @@ const SortableHeader = <TData, TValue>({
   );
 };
 
-
-
 export const columns: ColumnDef<Station, unknown>[] = [
   {
-    accessorFn: (row) => row.name || row.extra.address,
+    accessorFn: (row) => row.name || row.extra?.address,
     header: "Station Name",
   },
   {

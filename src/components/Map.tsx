@@ -25,7 +25,7 @@ mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 // Default Map View Settings
 const DEFAULT_MAP_CENTER: [number, number] = [0, 20];
 const DEFAULT_MAP_ZOOM = 2;
-const DETAIL_MAP_ZOOM = 12;
+const DETAIL_MAP_ZOOM = 10;
 
 // Network Source/Layer IDs
 const NETWORK_SOURCE_ID = "network-locations";

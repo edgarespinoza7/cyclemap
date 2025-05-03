@@ -24,13 +24,13 @@ export default async function MainLayout({
     <MapInteractionProvider>
       <div className="h-screen flex flex-col md:flex-row ">
         {/* Sidebar Area */}
-        <div className="flex-1/4 min-h-[40vh] md:h-screen overflow-auto flex flex-col">
+        <div className="w-[550px] min-h-[40vh] md:h-screen overflow-auto flex flex-col">
           {/* Dynamic content from page.tsx or networks/[id]/page.tsx goes here */}
           <div className="flex-grow overflow-y-auto">{children}</div>
         </div>
 
         {/* Map Area */}
-        <div className="flex-3/4 h-screen">
+        <div className="flex-1 w-full h-screen">
           <Map networks={networks} />
         </div>
       </div>
