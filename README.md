@@ -17,9 +17,9 @@ Visit https://cyclemap-gamma.vercel.app/ to view the deployed application.
 
 ## Tech Stack
 
-- **Framework**: Next.js 14 (App Router)
+- **Framework**: Next.js 15 (App Router)
 - **Language**: TypeScript
-- **Styling**: Tailwind CSS + shadcn/ui
+- **Styling**: Tailwind CSS (v4) + shadcn/ui 
 - **Map**: Mapbox GL JS
 - **Data Fetching**: SWR
 - **State Management**: React Context
@@ -31,7 +31,7 @@ Visit https://cyclemap-gamma.vercel.app/ to view the deployed application.
 
 1. **App Router & Server Components**
 
-   - Leveraged Next.js 14 App Router for improved routing and layouts
+   - Leveraged Next.js 15 App Router for improved routing and layouts
    - Used Server Components where possible to reduce client-side JavaScript
 
 2. **Data Fetching Strategy**
