@@ -205,10 +205,13 @@ export default function NetworkList({
 
   return (
     <Suspense>
-      <div className="p-10 flex flex-col h-screen overflow-hidden">
+      <div className="flex flex-col h-full overflow-hidden">
         {/* Sidebar Header */}
-        <Header />
-        <div className="flex py-4 flex-col 2xl:flex-row gap-2">
+        <div className="px-10 pt-10 pb-4">
+           <Header />
+        </div>
+       
+        <div className="px-10 pb-4 flex flex-col 2xl:flex-row gap-2">
           {/* Wrapper for Input and Icon */}
           <div className="relative flex-grow">
             {" "}
@@ -299,8 +302,8 @@ export default function NetworkList({
           </Popover>
         </div>
         {/* Network Cards */}
-        <ScrollArea className="h-screen scrollbar-hide overflow-y-auto">
-          <div>
+        <ScrollArea className="flex-1 px-10">
+          <div className="space-y-4">
             {paginated.map((network) => (
               <NetworkCard key={network.id} network={network} />
             ))}
@@ -309,7 +312,7 @@ export default function NetworkList({
           {/* Pagination Controls */}
           {/* Only show if there are multiple pages */}
           {totalPages > 1 && (
-            <div className="flex justify-center pt-2 mt-4">
+            <div className="py-4 sticky bottom-0 bg-background z-10 border-t border-accent">
               {" "}
               {/* Center the pagination */}
               <Pagination>

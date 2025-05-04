@@ -22,7 +22,7 @@ export default function NetworkDetailDisplay({
   const { selectStation } = useMapInteraction();
 
   return (
-    <div className="container mx-auto bg-primary text-white overflow-x-auto h-screen scrollbar-hide">
+    <div className="container mx-auto bg-primary text-white overflow-x-auto h-screen scrollbar-hide pb-4">
       <div className="relative bg-[url('/network-detail-bgimage.jpg')] bg-cover bg-center bg-no-repeat pl-10 py-8 pr-6 h-[252px]">
         <div>
           <div className="absolute inset-0 bg-gradient-to-t from-primary to-transparent"></div>
