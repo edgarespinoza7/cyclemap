@@ -116,7 +116,7 @@ export function DataTable<TData, TValue>({
   const paginationRange = getPaginationRange(currentPage, pageCount);
 
   return (
-    <div>
+    <div >
       <div>
         <Table>
           <TableHeader>
@@ -124,7 +124,7 @@ export function DataTable<TData, TValue>({
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id} className="text-white uppercase">
+                    <TableHead key={header.id} className="text-white uppercase md:text-base font-semibold tracking-wider">
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -180,7 +180,7 @@ export function DataTable<TData, TValue>({
       {/* Conditional Pagination Controls */}
       {/* Only shows if there are multiple pages */}
       {pageCount > 1 && (
-        <div className="py-4 flex justify-center pt-4 sticky bottom-0">
+        <div className="py-4 flex justify-center pt-4 sticky bottom-0 bg-primary">
           <Pagination>
             <PaginationContent>
               {/* Previous Page Button */}

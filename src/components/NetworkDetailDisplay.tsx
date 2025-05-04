@@ -7,7 +7,8 @@ import { columns } from "../app/(main)/networks/[id]/columns";
 import { countryMap } from "@/lib/countryUtils";
 import type { NetworkDetails, Station } from "@/lib/types";
 import { MoveLeft, MapPin, BriefcaseBusiness } from "lucide-react";
-import { useMapInteraction } from "@/context/MapInteractionContext"; 
+import { useMapInteraction } from "@/context/MapInteractionContext";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface NetworkDetailDisplayProps {
   networkDetails: NetworkDetails;
@@ -22,7 +23,7 @@ export default function NetworkDetailDisplay({
   const { selectStation } = useMapInteraction();
 
   return (
-    <div className="mx-auto bg-primary text-white overflow-x-auto h-screen scrollbar-hide pb-4">
+    <div className="mx-auto bg-primary text-white h-full flex flex-col overflow-y-auto  scrollbar-hide">
       <div className="relative bg-[url('/network-detail-bgimage.jpg')] bg-cover bg-center bg-no-repeat pl-10 py-8 pr-6 h-[252px]">
         <div>
           <div className="absolute inset-0 bg-gradient-to-t from-primary to-transparent"></div>
@@ -61,8 +62,8 @@ export default function NetworkDetailDisplay({
         </div>
       </div>
 
-      <div className="px-10 overflow-y-auto scrollbar-hide">
-        <div className="pl-2 py-2">
+      <ScrollArea className="flex-1 px-10 pb-4">
+        <div className="pl-2 py-4">
           <p>
             All{" "}
             <span className="border border-orange-500 rounded p-1">
@@ -72,8 +73,12 @@ export default function NetworkDetailDisplay({
           </p>
         </div>
 
-        <DataTable columns={columns} data={stations} onRowClick={(station) => selectStation(station as Station)}></DataTable>
-      </div>
+        <DataTable
+          columns={columns}
+          data={stations}
+          onRowClick={(station) => selectStation(station as Station)}
+        />
+      </ScrollArea>
     </div>
   );
 }
