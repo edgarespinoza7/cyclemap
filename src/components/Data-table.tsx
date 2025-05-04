@@ -180,7 +180,7 @@ export function DataTable<TData, TValue>({
       {/* Conditional Pagination Controls */}
       {/* Only shows if there are multiple pages */}
       {pageCount > 1 && (
-        <div className="flex justify-center pt-4">
+        <div className="py-4 flex justify-center pt-4 sticky bottom-0">
           <Pagination>
             <PaginationContent>
               {/* Previous Page Button */}

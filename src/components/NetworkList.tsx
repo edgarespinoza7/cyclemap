@@ -205,7 +205,7 @@ export default function NetworkList({
 
   return (
     <Suspense>
-      <div className="flex flex-col h-full overflow-hidden">
+      <div className="flex flex-col h-full overflow-y-auto scrollbar-hide">
         {/* Sidebar Header */}
         <div className="px-10 pt-10 pb-4">
            <Header />
