@@ -208,9 +208,9 @@ export default function NetworkList({
       <div className="flex flex-col h-full overflow-y-auto scrollbar-hide">
         {/* Sidebar Header */}
         <div className="px-10 pt-10 pb-4">
-           <Header />
+          <Header />
         </div>
-       
+
         <div className="px-10 pb-4 flex flex-col 2xl:flex-row gap-2">
           {/* Wrapper for Input and Icon */}
           <div className="relative flex-grow">
@@ -232,7 +232,7 @@ export default function NetworkList({
               <Button
                 role="combobox"
                 aria-expanded={isComboboxOpen}
-                className="bg-white hover:bg-accent rounded-full h-12 w-full sm:w-[114px] justify-start flex-shrink-0 text-primary border-accent border-1 "
+                className="bg-white hover:bg-accent rounded-full h-12 w-full sm:w-[114px] justify-start flex-shrink-0 text-primary border-accent border-1 overflow-hidden"
                 onClick={() => setIsComboboxOpen((prev) => !prev)} // Toggle combobox open state
               >
                 <MapPin className="left-4 size-4 shrink-0 text-primary" />
