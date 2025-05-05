@@ -1,4 +1,4 @@
-import { NetworkDetails } from "./types";
+import { Network } from "./types";
 import type { Station } from "@/lib/types";
 type SetStationsFunction = (stations: Station[] | null) => void;
 
@@ -18,7 +18,7 @@ export async function getBikeNetworks() {
 export async function getNetworkDetailsById(
   id: string,
   revalidateSeconds: number = 600
-): Promise<NetworkDetails | null> {
+): Promise<Network | null> {
   try {
     const res = await fetch(`${API_BASE_URL}/networks/${id}`, {
       next: { revalidate: revalidateSeconds },
@@ -29,7 +29,7 @@ export async function getNetworkDetailsById(
     }
 
     const data = await res.json();
-    return data.network as NetworkDetails;
+    return data.network as Network;
   } catch (error) {
     console.error(`Failed to fetch network details for ${id}:`, error);
     return null;

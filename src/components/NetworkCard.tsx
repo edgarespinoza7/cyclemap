@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { countryMap } from "@/lib/countryUtils";
-import type { NetworkListItem } from "@/lib/types";
+import type { Network } from "@/lib/types";
 import { MapPin, BriefcaseBusiness, MoveRight } from "lucide-react";
 
 // SWR Fetcher function
@@ -27,7 +27,7 @@ const fetcher = async (url: string) => {
 };
 
 interface NetworkCardProps {
-  network: NetworkListItem;
+  network: Network;
 }
 
 export default function NetworkCard({ network }: NetworkCardProps) {

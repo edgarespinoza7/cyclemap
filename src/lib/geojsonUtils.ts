@@ -1,9 +1,9 @@
 import type { FeatureCollection, Point } from "geojson";
-import type { NetworkMapSummary, Station } from "./types";
+import type { Network, Station } from "./types";
 
 // Convert network map data to GeoJSON FeatureCollection
 export const convertNetworksToGeoJSON = (
-  networkData: NetworkMapSummary[]
+  networkData: Network[]
 ): FeatureCollection<Point> => {
   return {
     type: "FeatureCollection",

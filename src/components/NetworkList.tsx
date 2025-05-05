@@ -6,7 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { countryMap } from "@/lib/countryUtils";
 import Header from "./Header";
-import type { NetworkListItem, Country } from "@/lib/types";
+import type { Network, Country } from "@/lib/types";
 import { Check, MapPin, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -37,7 +37,7 @@ import { usePathname, useSearchParams, useRouter } from "next/navigation";
 export default function NetworkList({
   networks,
 }: {
-  networks: NetworkListItem[];
+  networks: Network[];
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -77,8 +77,8 @@ export default function NetworkList({
       const matchesName = n.name.toLowerCase().includes(searchTermLower);
 
       // Add location filtering if needed, e.g., city:
-      // const matchesCity = n.location.city.toLowerCase().includes(searchTermLower);
-      return matchesName; // || matchesCity;
+      const matchesCity = n.location.city.toLowerCase().includes(searchTermLower);
+      return matchesName|| matchesCity;
     });
   }, [networks, search, countryFilter]);
 

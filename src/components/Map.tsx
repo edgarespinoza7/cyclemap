@@ -15,7 +15,7 @@ import {
   convertStationsToGeoJSON,
 } from "@/lib/geojsonUtils";
 import type { Point } from "geojson";
-import type { NetworkMapSummary, Station } from "@/lib/types";
+import type { Network, Station } from "@/lib/types";
 import { Locate, Plus, Minus } from "lucide-react";
 import { useMapInteraction } from "@/context/MapInteractionContext";
 import { fetchStationsForNetwork } from "@/lib/api";
@@ -35,8 +35,7 @@ const NETWORK_HIGHLIGHT_LAYER_ID = "network-points-highlight-layer";
 const STATION_SOURCE_ID = "station-locations";
 const STATION_LAYER_ID = "station-points-layer";
 
-// Helper Functions
-
+// -- Helper Functions
 /// Creates and shows a popup on the map
 const createAndShowPopup = (
   map: mapboxgl.Map,
@@ -74,7 +73,7 @@ const shouldFlyTo = (
   return lngDiff > tolerance || latDiff > tolerance || zoomDiff > 0.1;
 };
 
-export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
+export default function Map({ networks }: { networks: Network[] }) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const popupRef = useRef<mapboxgl.Popup | null>(null);
