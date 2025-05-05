@@ -76,9 +76,14 @@ export default function NetworkList({
       // Only filter by name and location initially, as company data isn't available yet
       const matchesName = n.name.toLowerCase().includes(searchTermLower);
 
-      // Add location filtering if needed, e.g., city:
-      const matchesCity = n.location.city.toLowerCase().includes(searchTermLower);
-      return matchesName|| matchesCity;
+      // Filter by company
+      const matchesCompany = (n.company ?? []).some((c) =>
+        c.toLowerCase().includes(searchTermLower)
+      );
+
+      // Add city filtering if needed
+      // const matchesCity = n.location.city.toLowerCase().includes(searchTermLower);
+      return matchesName|| matchesCompany;
     });
   }, [networks, search, countryFilter]);
 
