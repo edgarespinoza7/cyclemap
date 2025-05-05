@@ -90,3 +90,10 @@ export interface Country {
 
 // Type for the country code -> name map
 export type CountryCodeMap = Record<string, string>;
+
+// NetworkDetailDisplay
+
+export interface NetworkDetailDisplayProps {
+  networkDetails: NetworkDetails;
+  stations: Station[];
+}

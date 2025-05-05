@@ -2,14 +2,11 @@
 
 import { useEffect, useMemo, useState, useCallback, Suspense } from "react";
 import { Input } from "@/components/ui/input";
-
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-
 import { countryMap } from "@/lib/countryUtils";
 import Header from "./Header";
 import type { NetworkListItem, Country } from "@/lib/types";
-// Combobox and Popover imports
 import { Check, MapPin, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -25,7 +22,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-// Pagination imports
 import {
   Pagination,
   PaginationContent,

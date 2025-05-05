@@ -5,15 +5,11 @@ import { Button } from "@/components/ui/button";
 import { DataTable } from "./Data-table";
 import { columns } from "../app/(main)/networks/[id]/columns";
 import { countryMap } from "@/lib/countryUtils";
-import type { NetworkDetails, Station } from "@/lib/types";
+import type { Station, NetworkDetailDisplayProps } from "@/lib/types";
 import { MoveLeft, MapPin, BriefcaseBusiness } from "lucide-react";
 import { useMapInteraction } from "@/context/MapInteractionContext";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-interface NetworkDetailDisplayProps {
-  networkDetails: NetworkDetails;
-  stations: Station[];
-}
 
 export default function NetworkDetailDisplay({
   networkDetails,

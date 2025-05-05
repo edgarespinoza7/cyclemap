@@ -1,4 +1,7 @@
 import { NetworkDetails } from "./types";
+import type { Station } from "@/lib/types";
+type SetStationsFunction = (stations: Station[] | null) => void;
+
 
 const API_BASE_URL = "https://api.citybik.es/v2";
 
@@ -32,3 +35,21 @@ export async function getNetworkDetailsById(
     return null;
   }
 }
+
+
+// Fetchs stations for a specific network
+export const fetchStationsForNetwork = async (
+  networkId: string,
+  setCurrentStations: SetStationsFunction
+) => {
+  try {
+    const networkDetails = await getNetworkDetailsById(networkId);
+    if (!networkDetails) {
+      throw new Error(`Network with ID ${networkId} not found`);
+    }
+    setCurrentStations(networkDetails.stations || []);
+  } catch (error) {
+    console.error("Error fetching station data:", error);
+    setCurrentStations(null);
+  }
+};

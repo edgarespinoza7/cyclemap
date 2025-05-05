@@ -16,9 +16,9 @@ import {
 } from "@/lib/geojsonUtils";
 import type { Point } from "geojson";
 import type { NetworkMapSummary, Station } from "@/lib/types";
-import { getNetworkDetailsById } from "@/lib/api";
 import { Locate, Plus, Minus } from "lucide-react";
 import { useMapInteraction } from "@/context/MapInteractionContext";
+import { fetchStationsForNetwork } from "@/lib/api";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
@@ -59,7 +59,6 @@ const createAndShowPopup = (
 };
 
 // Checks if the map is already close to the target coordinates and zoom level
-
 const shouldFlyTo = (
   map: mapboxgl.Map,
   targetCoords: [number, number],
@@ -89,19 +88,7 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
     null
   );
 
-  // Fetchs stations for a specific network
-  const fetchStationsForNetwork = async (networkId: string) => {
-    try {
-      const networkDetails = await getNetworkDetailsById(networkId);
-      if (!networkDetails) {
-        throw new Error(`Network with ID ${networkId} not found`);
-      }
-      setCurrentStations(networkDetails.stations || []);
-    } catch (error) {
-      console.error("Error fetching station data:", error);
-      setCurrentStations(null);
-    }
-  };
+
 
   // Map Setup Functions
   // Sets up the sources and layers for networks and stations
@@ -213,7 +200,7 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
       hoveredNetworkId = null;
     });
 
-    // --- Network Click Listener ---
+    // Network Click Listener
     map.on("click", NETWORK_LAYER_ID, (e) => {
       // ... (rest of network click logic remains the same, but use createAndShowPopup)
       if (!e.features || e.features.length === 0) return;
@@ -305,7 +292,7 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
       );
     });
 
-    // --- Station Hover Listeners ---
+    // Station Hover Listeners
     map.on("mouseenter", STATION_LAYER_ID, () => {
       map.getCanvas().style.cursor = "pointer"; // Change cursor to pointer
     });
@@ -355,7 +342,7 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
 
       // Fetch stations immediately if we loaded on a detail page
       if (initialNetworkId) {
-        fetchStationsForNetwork(initialNetworkId);
+        fetchStationsForNetwork(initialNetworkId, setCurrentStations);
       }
     });
 
@@ -373,6 +360,7 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
   // Reason: We only want to initialize the map instance once.
   // Subsequent route changes and view updates are handled by the second useEffect.
 
+  
   // Handles Route Changes (Zoom, Highlight, Fetch/Display Stations)
   useEffect(() => {
     const map = mapRef.current;
@@ -411,7 +399,7 @@ export default function Map({ networks }: { networks: NetworkMapSummary[] }) {
           });
         }
         // Fetch stations for the selected network
-        fetchStationsForNetwork(networkId);
+        fetchStationsForNetwork(networkId, setCurrentStations);
       } else {
         // Network ID in URL, but not found in networks list? Handle error or clear state.
         console.warn(
