@@ -73,7 +73,7 @@ export default function NetworkList({
       const searchTermLower = search.toLowerCase();
       if (!searchTermLower) return true;
 
-      // Only filter by name and location initially, as company data isn't available yet
+      // Filter by Network name 
       const matchesName = n.name.toLowerCase().includes(searchTermLower);
 
       // Filter by company
@@ -81,7 +81,7 @@ export default function NetworkList({
         c.toLowerCase().includes(searchTermLower)
       );
 
-      // Add city filtering if needed
+      // Filter by city (if needed)
       // const matchesCity = n.location.city.toLowerCase().includes(searchTermLower);
       return matchesName|| matchesCompany;
     });
