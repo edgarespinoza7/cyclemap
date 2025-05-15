@@ -31,6 +31,7 @@ const DETAIL_MAP_ZOOM = 10;
 const NETWORK_SOURCE_ID = "network-locations";
 const NETWORK_LAYER_ID = "network-points-layer";
 const NETWORK_HIGHLIGHT_LAYER_ID = "network-points-highlight-layer";
+
 // Station Source/Layer IDs
 const STATION_SOURCE_ID = "station-locations";
 const STATION_LAYER_ID = "station-points-layer";
@@ -41,15 +42,17 @@ const createAndShowPopup = (
   map: mapboxgl.Map,
   coordinates: [number, number],
   htmlContent: string,
-  popupRef: React.MutableRefObject<mapboxgl.Popup | null>
+  popupRef: React.RefObject<mapboxgl.Popup | null>
 ) => {
+  // Clean up any existing popup
   if (popupRef.current) {
     popupRef.current.remove();
   }
+  // Create a new popup instance
   popupRef.current = new mapboxgl.Popup({
     offset: 15,
     closeButton: false,
-    closeOnClick: false, // Keep open until explicitly closed or replaced
+    closeOnClick: true, // Keep open until explicitly closed or replaced
   })
     .setLngLat(coordinates)
     .setHTML(htmlContent)
@@ -87,11 +90,9 @@ export default function Map({ networks }: { networks: Network[] }) {
     null
   );
 
-
   // Map Setup Functions
   // Sets up the sources and layers for networks and stations
   const setupMapLayers = (map: mapboxgl.Map, initialNetworkId?: string) => {
-
     // 1. Add Source and Layers for Networks
     const networkGeojsonData = convertNetworksToGeoJSON(networks);
     if (!map.getSource(NETWORK_SOURCE_ID)) {
@@ -299,20 +300,6 @@ export default function Map({ networks }: { networks: Network[] }) {
     map.on("mouseleave", STATION_LAYER_ID, () => {
       map.getCanvas().style.cursor = ""; // Change cursor back to default
     });
-
-    // Close popup when clicking outside 
-  map.on("click", (e) => {
-    // Check if the click is NOT on a feature of interest
-    const features = map.queryRenderedFeatures(e.point, {
-      layers: [NETWORK_LAYER_ID, STATION_LAYER_ID],
-    });
-    if (!features.length) {
-      if (popupRef.current) {
-        popupRef.current.remove();
-        popupRef.current = null;
-      }
-    }
-  });
   };
 
   // Initializes the map and set up layers and event listeners
@@ -373,7 +360,6 @@ export default function Map({ networks }: { networks: Network[] }) {
   // Reason: We only want to initialize the map instance once.
   // Subsequent route changes and view updates are handled by the second useEffect.
 
-  
   // Handles Route Changes (Zoom, Highlight, Fetch/Display Stations)
   useEffect(() => {
     const map = mapRef.current;
@@ -534,37 +520,35 @@ export default function Map({ networks }: { networks: Network[] }) {
   };
 
   return (
-    
-      <div className="relative h-full w-full">
-        <div ref={mapContainer} className="absolute inset-0 h-full w-full" />
-        <div className="absolute top-8 left-8 z-10">
-          <Button
-            onClick={handleLocate}
-            className="bg-primary rounded-2xl hover:bg-primary/90 text-white shadow-xs flex items-center gap-2 px-4 py-2 cursor-pointer"
-          >
-            <span>
-              <Locate />
-            </span>
-            Near me
-          </Button>
-        </div>
-        <div className="absolute top-8 right-6 z-10 flex flex-col shadow-xl bg-white rounded-2xl">
-          <Button
-            variant="ghost"
-            onClick={handleZoomIn}
-            className="rounded-t-2xl rounded-b-none"
-          >
-            <Plus className="text-primary " />
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={handleZoomOut}
-            className="rounded-b-2xl rounded-t-none"
-          >
-            <Minus className="text-primary" />
-          </Button>
-        </div>
+    <div className="relative h-full w-full">
+      <div ref={mapContainer} className="absolute inset-0 h-full w-full" />
+      <div className="absolute top-8 left-8 z-10">
+        <Button
+          onClick={handleLocate}
+          className="bg-primary rounded-2xl hover:bg-primary/90 text-white shadow-xs flex items-center gap-2 px-4 py-2 cursor-pointer"
+        >
+          <span>
+            <Locate />
+          </span>
+          Near me
+        </Button>
       </div>
-    
+      <div className="absolute top-8 right-6 z-10 flex flex-col shadow-xl bg-white rounded-2xl">
+        <Button
+          variant="ghost"
+          onClick={handleZoomIn}
+          className="rounded-t-2xl rounded-b-none"
+        >
+          <Plus className="text-primary " />
+        </Button>
+        <Button
+          variant="ghost"
+          onClick={handleZoomOut}
+          className="rounded-b-2xl rounded-t-none"
+        >
+          <Minus className="text-primary" />
+        </Button>
+      </div>
+    </div>
   );
 }
