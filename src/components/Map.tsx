@@ -88,10 +88,10 @@ export default function Map({ networks }: { networks: Network[] }) {
   );
 
 
-
   // Map Setup Functions
   // Sets up the sources and layers for networks and stations
   const setupMapLayers = (map: mapboxgl.Map, initialNetworkId?: string) => {
+
     // 1. Add Source and Layers for Networks
     const networkGeojsonData = convertNetworksToGeoJSON(networks);
     if (!map.getSource(NETWORK_SOURCE_ID)) {
@@ -299,6 +299,20 @@ export default function Map({ networks }: { networks: Network[] }) {
     map.on("mouseleave", STATION_LAYER_ID, () => {
       map.getCanvas().style.cursor = ""; // Change cursor back to default
     });
+
+    // Close popup when clicking outside 
+  map.on("click", (e) => {
+    // Check if the click is NOT on a feature of interest
+    const features = map.queryRenderedFeatures(e.point, {
+      layers: [NETWORK_LAYER_ID, STATION_LAYER_ID],
+    });
+    if (!features.length) {
+      if (popupRef.current) {
+        popupRef.current.remove();
+        popupRef.current = null;
+      }
+    }
+  });
   };
 
   // Initializes the map and set up layers and event listeners

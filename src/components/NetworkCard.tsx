@@ -33,8 +33,7 @@ interface NetworkCardProps {
 export default function NetworkCard({ network }: NetworkCardProps) {
   const router = useRouter();
 
-  // Use SWR to fetch network details
-  // The key is the URL, and the fetcher is the function to call
+  // Use SWR to fetch network details and caching 
   const {
     data: networkDetails,
     error,

@@ -34,11 +34,7 @@ import {
 import NetworkCard from "./NetworkCard"; // Import the new component
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 
-export default function NetworkList({
-  networks,
-}: {
-  networks: Network[];
-}) {
+export default function NetworkList({ networks }: { networks: Network[] }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -73,7 +69,7 @@ export default function NetworkList({
       const searchTermLower = search.toLowerCase();
       if (!searchTermLower) return true;
 
-      // Filter by Network name 
+      // Filter by Network name
       const matchesName = n.name.toLowerCase().includes(searchTermLower);
 
       // Filter by company
@@ -83,7 +79,7 @@ export default function NetworkList({
 
       // Filter by city (if needed)
       // const matchesCity = n.location.city.toLowerCase().includes(searchTermLower);
-      return matchesName|| matchesCompany;
+      return matchesName || matchesCompany;
     });
   }, [networks, search, countryFilter]);
 
@@ -213,7 +209,7 @@ export default function NetworkList({
         </div>
 
         <div className="px-10 pb-4 flex flex-col 2xl:flex-row gap-2">
-          {/* Wrapper for Input and Icon */}
+          {/* Wrapper for Input and Country filters */}
           <div className="relative flex-grow">
             {" "}
             {/* Use flex-grow to take available space */}
