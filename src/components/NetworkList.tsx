@@ -34,20 +34,26 @@ import {
 import NetworkCard from "./NetworkCard"; // Import the new component
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 
+// Component Definition and Props
 export default function NetworkList({ networks }: { networks: Network[] }) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const router = useRouter(); // For programmatic navigation (updating URL)
+  const pathname = usePathname(); // Gets the current URL path
+  const searchParams = useSearchParams(); // Gets the current URL query parameters
+
+  // State for the search input, initialized from URL query param 'search' or empty
   const [search, setSearch] = useState(() => searchParams.get("search") || "");
+  // State for the selected country filter, initialized from URL query param 'country' or empty
   const [countryFilter, setCountryFilter] = useState(
     () => searchParams.get("country") || ""
   );
+  // State for the current page number in pagination
   const [page, setPage] = useState(1); // Current page number
-  const pageSize = 7; // Number of items per page
+  const pageSize = 7; // How many network cards to show per page
 
-  // Combobox Open State
+  // State to control whether the country filter combobox (popover) is open
   const [isComboboxOpen, setIsComboboxOpen] = useState(false);
 
+  // Memoized calculation for available countries
   const availableCountries = useMemo(() => {
     return Array.from(new Set(networks.map((n) => n.location.country)))
       .map(
@@ -59,6 +65,8 @@ export default function NetworkList({ networks }: { networks: Network[] }) {
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [networks]);
 
+  // Memoized calculation for filtered networks
+  // This recalculates whenever 'networks', 'search', or 'countryFilter' changes
   const filtered = useMemo(() => {
     return networks.filter((n) => {
       const matchesCountry = countryFilter
@@ -69,10 +77,10 @@ export default function NetworkList({ networks }: { networks: Network[] }) {
       const searchTermLower = search.toLowerCase();
       if (!searchTermLower) return true;
 
-      // Filter by Network name
+      // Check if network name matches search term
       const matchesName = n.name.toLowerCase().includes(searchTermLower);
 
-      // Filter by company
+      // Check if any company name matches search term
       const matchesCompany = (n.company ?? []).some((c) =>
         c.toLowerCase().includes(searchTermLower)
       );
@@ -83,31 +91,42 @@ export default function NetworkList({ networks }: { networks: Network[] }) {
     });
   }, [networks, search, countryFilter]);
 
+  // Memoized calculation for paginated networks
+  // This takes the 'filtered' list and slices it for the current 'page'.
+  // It also handles resetting the page to 1 if filters change and the current page becomes invalid.
   const paginated = useMemo(() => {
     const newTotalPages = Math.ceil(filtered.length / pageSize);
+    // If current page is beyond the new total pages (and there are pages), reset to page 1
     if (page > newTotalPages && newTotalPages > 0) {
       setPage(1);
     } else if (newTotalPages === 0 && page !== 1) {
+      // If no results, reset to page 1
       setPage(1);
     }
+    // Slice the filtered array to get items for the current page
     return filtered.slice((page - 1) * pageSize, page * pageSize);
   }, [filtered, page, pageSize]);
 
+  // Memoized calculation for total pages
+  // Recalculates if 'filtered' or 'pageSize' changes.
   const totalPages = useMemo(
     () => Math.ceil(filtered.length / pageSize),
     [filtered, pageSize]
   );
 
+  // --Event Handlers
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
   };
 
-  // Callback function to update the filter from the combobox
+  // Updates the 'countryFilter' state when a country is selected from the combobox
   const handleSelectCountry = (countryCode: string) => {
     setCountryFilter(countryCode);
     setIsComboboxOpen(false);
   };
 
+  // Helper function to generate pagination range ( 1 ... 5 6 7 ... 10)
+  // This logic is identical to the one in Data-table.tsx, might be good to centralize it
   const getPaginationRange = (
     currentPage: number,
     totalPages: number,
@@ -141,7 +160,7 @@ export default function NetworkList({ networks }: { networks: Network[] }) {
       const rightItemCount = 3 + 2 * siblingCount;
       const rightRange = Array.from(
         { length: rightItemCount },
-        (_, i) => totalPages - rightItemCount + i + 1
+        (_, i) => totalPages - rightItemCount + 1 + i
       );
       return [firstPageIndex, "...", ...rightRange];
     }
@@ -158,32 +177,39 @@ export default function NetworkList({ networks }: { networks: Network[] }) {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
   };
 
+  // Memoized calculation for the actual pagination range to display
   const paginationRange = useMemo(() => {
     return getPaginationRange(page, totalPages);
   }, [page, totalPages]);
 
+  // 12. Callback to update URL query parameters
+  // Wrapped in useCallback to memoize the function itself
   const updateQueryParams = useCallback(
     (newSearch: string, newCountry: string) => {
-      const params = new URLSearchParams(searchParams.toString());
+      const params = new URLSearchParams(searchParams.toString()); // Create mutable copy
 
+      // Set or delete 'search' param
       if (newSearch) {
         params.set("search", newSearch);
       } else {
         params.delete("search");
       }
+      // Set or delete 'country' param
       if (newCountry) {
         params.set("country", newCountry);
       } else {
         params.delete("country");
       }
 
-      params.delete("page"); // Remove page from query params
+      params.delete("page"); // Always remove 'page' param from URL for simplicity
 
       router.push(`${pathname}?${params.toString()}`, { scroll: false });
     },
     [pathname, router, searchParams]
   );
 
+  // useEffect to sync local filter state with URL query parameters
+  // This runs when 'search', 'countryFilter', 'updateQueryParams', or 'searchParams' changes.
   useEffect(() => {
     const currentSearchInUrl = searchParams.get("search") || "";
     const currentCountryInUrl = searchParams.get("country") || "";
@@ -196,6 +222,8 @@ export default function NetworkList({ networks }: { networks: Network[] }) {
     }
   }, [search, countryFilter, updateQueryParams, searchParams]);
 
+  // useEffect to reset page to 1 when filters change
+  // This ensures users see the first page of new results
   useEffect(() => {
     setPage(1); // Reset page to 1 when networks change
   }, [search, countryFilter]);

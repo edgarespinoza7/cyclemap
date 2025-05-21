@@ -3,20 +3,21 @@
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "./Data-table";
-import { columns } from "../app/(main)/networks/[id]/columns";
+import { columns } from "./columns";
 import { countryMap } from "@/lib/countryUtils";
 import type { Station, NetworkDetailDisplayProps } from "@/lib/types";
 import { MoveLeft, MapPin, BriefcaseBusiness } from "lucide-react";
 import { useMapInteraction } from "@/context/MapInteractionContext";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-
+// Component Definition and Props
 export default function NetworkDetailDisplay({
   networkDetails,
   stations,
 }: NetworkDetailDisplayProps) {
-  const router = useRouter();
-  const { selectStation } = useMapInteraction();
+   // Hooks
+  const router = useRouter();  // For navigating back
+  const { selectStation } = useMapInteraction(); // To tell the map which station is selected
 
   return (
     <div className="mx-auto bg-primary text-white h-full flex flex-col overflow-y-auto  scrollbar-hide">
