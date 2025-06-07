@@ -229,7 +229,13 @@ export default function NetworkList({ networks }: { networks: Network[] }) {
   }, [search, countryFilter]);
 
   return (
-    <Suspense>
+    <Suspense
+      fallback={
+        <div className="flex h-[100dvh] items-center justify-center text-3xl">
+          Loading...
+        </div>
+      }
+    >
       <div className="flex flex-col h-full overflow-y-auto scrollbar-hide">
         {/* Sidebar Header */}
         <div className="px-10 pt-10 pb-4">
@@ -257,7 +263,7 @@ export default function NetworkList({ networks }: { networks: Network[] }) {
               <Button
                 role="combobox"
                 aria-expanded={isComboboxOpen}
-                className="bg-white hover:bg-accent rounded-full h-12 w-full sm:w-[114px] justify-start flex-shrink-0 text-primary border-accent border-1 overflow-hidden"
+                className="bg-white hover:bg-accent rounded-full h-12 w-full sm:w-[114px] justify-start flex-shrink-0 text-primary border-accent border-1 overflow-hidden cursor-pointer"
                 onClick={() => setIsComboboxOpen((prev) => !prev)} // Toggle combobox open state
               >
                 <MapPin className="left-4 size-4 shrink-0 text-primary" />

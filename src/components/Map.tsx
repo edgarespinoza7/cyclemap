@@ -610,14 +610,14 @@ export default function Map({ networks }: { networks: Network[] }) {
         <Button
           variant="ghost"
           onClick={handleZoomIn}
-          className="rounded-t-2xl rounded-b-none"
+          className="rounded-t-2xl rounded-b-none cursor-pointer"
         >
           <Plus className="text-primary " />
         </Button>
         <Button
           variant="ghost"
           onClick={handleZoomOut}
-          className="rounded-b-2xl rounded-t-none"
+          className="rounded-b-2xl rounded-t-none cursor-pointer"
         >
           <Minus className="text-primary" />
         </Button>

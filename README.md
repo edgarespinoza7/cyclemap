@@ -21,7 +21,6 @@ Visit https://cyclemap-gamma.vercel.app/ to view the deployed application.
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS (v4) + shadcn/ui 
 - **Map**: Mapbox GL JS
-- **Data Fetching**: SWR
 - **State Management**: React Context
 - **Deployment**: Vercel
 
@@ -36,8 +35,6 @@ Visit https://cyclemap-gamma.vercel.app/ to view the deployed application.
 
 2. **Data Fetching Strategy**
 
-   - Implemented SWR for data caching and revalidation
-   - Managed API rate limits through optimized fetching patterns
    - Created fallback mechanisms for handling API timeouts
 
 3. **Map Implementation**
